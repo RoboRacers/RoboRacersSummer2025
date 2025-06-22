@@ -16,10 +16,14 @@ public class StateMachines {
         // Shared among states for easy control of motors
     public Drive drive;
 
+    public Slides slides;
+
+
     // You inject the robot's Drive system into the FSM 
         // when creating the StateMachines object
-    public StateMachines(Drive drive) {
+    public StateMachines(Drive drive, Slides slides) {
         this.drive = drive;
+        this.slides = slides;
     }
 
         // Updates the currentState

@@ -23,11 +23,14 @@ public class AutonomousOpMode extends LinearOpMode {
         DcMotor leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         DcMotor rightBack = hardwareMap.get(DcMotor.class, "rightBack");
 
+        DcMotor slideMotor = hardwareMap.get(DcMotor.class, "slide");
+
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        Drive drive = new Drive(leftFront, rightFront);
-        StateMachines fsm = new StateMachines(drive);
+        Drive drive = new Drive(leftFront, rightFront, leftBack, rightBack);
+        Slides slide = new Slides(slideMotor);
+        StateMachines fsm = new StateMachines(drive, slide);
 
         waitForStart();
 
