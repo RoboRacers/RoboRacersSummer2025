@@ -31,7 +31,7 @@ public class Gimbo extends OpMode {
     double maxPower;
 
     // Configuration variables (tunable via dashboard)
-    public static double kP = 0.075;
+    public static double kP = 0.08;
     public static double kI = 0.00;
     public static double kD = 0.0001;
     public static double kF = 0.0;
@@ -111,6 +111,15 @@ public class Gimbo extends OpMode {
     public void loop() {
 
         targetAngle = initTarget - follower.getPose().getX();
+
+
+        if (targetAngle >= 17){
+            targetAngle = 17;
+        }
+        else if (targetAngle <= 0){
+            targetAngle = 0;
+        }
+
 
         double currentAngle = slidesMotor.getCurrentPosition();
 
