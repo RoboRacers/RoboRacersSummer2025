@@ -26,6 +26,8 @@ public class CameraOpMode extends LinearOpMode {
     private OpenCvCamera camera;
     private BlueObjectDetectionPipeline pipeline;
 
+
+
     public static final double CAMERA_TILT = 31.0;
     private Follower follower;
     private final Pose startPose = new Pose(0, 0, 0);
@@ -92,7 +94,9 @@ public class CameraOpMode extends LinearOpMode {
 //                }
                 continue;
             } else {
-                framesWithoutDetection = 0;
+//                framesWithoutDetection = 0;
+                telemetry.addData("Detected", "");
+                telemetry.update();
             }
 
             Rect r = blueObjects.get(0);
