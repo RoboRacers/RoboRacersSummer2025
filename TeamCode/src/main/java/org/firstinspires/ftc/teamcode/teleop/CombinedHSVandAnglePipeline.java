@@ -19,8 +19,8 @@ public class CombinedHSVandAnglePipeline extends OpenCvPipeline {
     private final Scalar lowerYellow = new Scalar(15, 100, 100);
     private final Scalar upperYellow = new Scalar(35, 255, 255);
 
-    private final Scalar lowerBlue = new Scalar(100, 150, 50);
-    private final Scalar upperBlue = new Scalar(140, 255, 255);
+    private final Scalar lowerBlue = new Scalar(114, 143, 50);
+    private final Scalar upperBlue = new Scalar(112, 162, 255);
 
     private final Scalar lowerRed1 = new Scalar(0, 120, 70);
     private final Scalar upperRed1 = new Scalar(10, 255, 255);
