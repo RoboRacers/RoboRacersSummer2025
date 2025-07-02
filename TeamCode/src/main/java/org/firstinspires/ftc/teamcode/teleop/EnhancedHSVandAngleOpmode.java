@@ -1,36 +1,37 @@
 package org.firstinspires.ftc.teamcode.teleop;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
-
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-@TeleOp(name = "Enhanced HSV and Angle Detection OpMode", group = "Vision")
+import org.openftc.easyopencv.*;
+
+@TeleOp(name = "Snapshot Vision OpMode", group = "Vision")
 public class EnhancedHSVandAngleOpmode extends LinearOpMode {
     OpenCvCamera camera;
-    org.firstinspires.ftc.teamcode.teleop.CombinedHSVandAnglePipeline pipeline;
-    Servo claw;
+    CombinedHSVandAnglePipeline pipeline;
+
+    double[][] calibrationData = new double[][]{
+            {1140, 401, 13.0,  3.5, 10.0},
+            {487,  466, 14.5, -9.8,  7.8},
+            {745,  295, 16.2, -5.9, 13.9}
+    };
+
+    PixelToDistanceMapper mapper = new PixelToDistanceMapper(calibrationData);
 
     @Override
     public void runOpMode() {
-        // Initialize the camera
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        int cameraMonitorViewId = hardwareMap.appContext.getResources()
+                .getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        camera = OpenCvCameraFactory.getInstance()
+                .createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
 
-        // Initialize the pipeline
-        pipeline = new org.firstinspires.ftc.teamcode.teleop.CombinedHSVandAnglePipeline();
+        pipeline = new CombinedHSVandAnglePipeline();
         camera.setPipeline(pipeline);
 
-//        claw = hardwareMap.get(Servo.class, "rotateClaw");
-
-        // Open the camera
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
-                camera.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
+                camera.startStreaming(1920, 1200, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override
@@ -40,27 +41,49 @@ public class EnhancedHSVandAngleOpmode extends LinearOpMode {
             }
         });
 
+
+        telemetry.addLine("Press A for RED, B for BLUE, Y for YELLOW");
+        telemetry.addLine("Press X to SNAPSHOT");
+        telemetry.update();
+
         waitForStart();
 
         while (opModeIsActive()) {
-            // Get target angle and detected objects count
-            double targetAngle = pipeline.getTargetAngle();
-            int detectedObjects = pipeline.getDetectedObjectsCount();
+            if (gamepad1.a) {
+                pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.RED);
+                telemetry.addLine("Target Color: RED");
+            } else if (gamepad1.b) {
+                pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.BLUE);
+                telemetry.addLine("Target Color: BLUE");
+            } else if (gamepad1.y) {
+                pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.YELLOW);
+                telemetry.addLine("Target Color: YELLOW");
+            }
 
-            targetAngle *= (180/3.14);
-            //NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
+            if (gamepad1.x) {
+                pipeline.triggerSnapshot();
+            }
 
-            double output = (((pipeline.angle - 0) * (0.9 - 0.1)) / (180 - 0)) + 0.1;
+            if (pipeline.hasProcessedSnapshot()) {
+                double angleDeg = pipeline.getTargetAngle();
+                telemetry.addData("Angle (deg)", angleDeg);
+                telemetry.addData("Detected Objects", pipeline.getDetectedObjectsCount());
+                telemetry.addData("pixels", pipeline.getDistance());
 
-//            claw.setPosition(output);
+                PixelToDistanceMapper.DistanceResult result = mapper.getDistanceFromPixel(pipeline.getCenter().x, pipeline.getCenter().y);
 
+                telemetry.addData("Direct Distance", result.directDist);
+                telemetry.addData("Forward", result.forwardDist);
+                telemetry.addData("Horizontal Offset", result.horizOffset);
 
-            // Display telemetry
-            telemetry.addData("Target Angle (Radians)", targetAngle);
-            telemetry.addData("Detected Objects", detectedObjects);
+                double[] hsv = pipeline.getHSVCenter();
+                if (hsv != null) {
+                    telemetry.addData("Center HSV", String.format("[%.0f, %.0f, %.0f]", hsv[0], hsv[1], hsv[2]));
+                }
+            }
+
             telemetry.update();
-
-            sleep(100); // Reduce CPU usage
+            sleep(100);
         }
 
         camera.stopStreaming();
