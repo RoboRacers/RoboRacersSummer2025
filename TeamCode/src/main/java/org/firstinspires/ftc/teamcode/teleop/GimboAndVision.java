@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
  * @version 2.0, 12/30/2024
  */
 
-@TeleOp(name = "Gimbo", group = "Examples")
+@TeleOp(name = "Gimbo2", group = "Examples")
 public class GimboAndVision extends OpMode {
     private Follower follower;
     private DcMotor slidesMotor;
