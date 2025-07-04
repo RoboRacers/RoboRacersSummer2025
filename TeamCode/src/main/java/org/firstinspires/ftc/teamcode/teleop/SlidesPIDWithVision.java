@@ -29,17 +29,20 @@ public class SlidesPIDWithVision extends OpMode {
     public static double kF = 0.0;
 
     // State
-    public double targetAngle = 0.0;
+    public double targetSlides = 0.0;
     private double integralSum = 0;
     private double lastError = 0;
     private double maxPower = 0;
     private ElapsedTime timer = new ElapsedTime();
     private final Pose startPose = new Pose(0, 0, 0);
 
+    private final double INCHES_TO_MOTOR_COUNTS_RESOLUTION = 29;
+
     // Vision
     OpenCvCamera camera;
     CombinedHSVandAnglePipeline pipeline;
     double[][] calibrationData = new double[][]{
+//           {camera center x, camera center y of object, direct (Euclidean distance) distance from camera lens to object, horizontal ground distance of object from camera base, forward distance of object with respect to camera base}
             {1140, 401, 13.0, 3.5, 10.0},
             {487, 466, 14.5, -9.8, 7.8},
             {745, 295, 16.2, -5.9, 13.9},
@@ -49,8 +52,8 @@ public class SlidesPIDWithVision extends OpMode {
     PixelToDistanceMapper mapper = new PixelToDistanceMapper(calibrationData);
 
     // Conversion: Inches to encoder ticks
-    public double target(double inches) {
-        return (inches * 29);
+    public double getTargetPosInMotorCounts(double inches) {
+        return (inches * INCHES_TO_MOTOR_COUNTS_RESOLUTION);
     }
 
     @Override
@@ -111,13 +114,13 @@ public class SlidesPIDWithVision extends OpMode {
                         pipeline.getCenter().x, pipeline.getCenter().y
                 );
 
-                targetAngle = result.forwardDist;
+                targetSlides = result.forwardDist;
 
                 // Clamp within physical limits
-                targetAngle = Math.max(0, Math.min(17, targetAngle));
+                targetSlides = Math.max(0, Math.min(17, targetSlides));
 
                 telemetry.addData("Detected Objects", pipeline.getDetectedObjectsCount());
-                telemetry.addData("Vision Target (Forward Offset)", targetAngle);
+                telemetry.addData("Vision Target (Forward Offset)", targetSlides);
                 telemetry.addData("Direct Distance", result.directDist);
                 telemetry.addData("Horizontal Offset", result.horizOffset);
             } else {
@@ -128,8 +131,8 @@ public class SlidesPIDWithVision extends OpMode {
 
 
         // PID Slide Logic
-        double currentAngle = slidesMotor.getCurrentPosition();
-        double error = target(targetAngle) - currentAngle;
+        double currentPos = slidesMotor.getCurrentPosition();
+        double error = getTargetPosInMotorCounts(targetSlides) - currentPos;
         integralSum += error * timer.seconds();
         double derivative = (error - lastError) / timer.seconds();
         double motorPower = (kP * error) + (kI * integralSum) + (kD * derivative);
@@ -152,9 +155,9 @@ public class SlidesPIDWithVision extends OpMode {
         follower.update();
 
         // Telemetry
-        telemetry.addData("Target Slide Angle (in)", targetAngle);
-        telemetry.addData("Encoder Target", target(targetAngle));
-        telemetry.addData("Current Pos", currentAngle);
+        telemetry.addData("Target Slide Angle (in)", targetSlides);
+        telemetry.addData("Encoder Target", getTargetPosInMotorCounts(targetSlides));
+        telemetry.addData("Current Pos", currentPos);
         telemetry.addData("Error", error);
         telemetry.addData("Motor Power", motorPower);
         telemetry.addData("Max Power", maxPower);
