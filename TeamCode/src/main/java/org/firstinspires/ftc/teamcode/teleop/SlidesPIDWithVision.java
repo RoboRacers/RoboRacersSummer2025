@@ -27,16 +27,28 @@ public class SlidesPIDWithVision extends OpMode {
     public static double kD = 0.0000000001;
     public static double kF = 0.0;
 
+<<<<<<< HEAD
     public double targetAngle = 0.0;
+=======
+    // State
+    public double targetSlides = 0.0;
+>>>>>>> b90fad6c5bd9c658dc1cd1c7f2f52b6d5adc9092
     private double integralSum = 0;
     private double lastError = 0;
     private double maxPower = 0;
     private ElapsedTime timer = new ElapsedTime();
     private final Pose startPose = new Pose(0, 0, 0);
 
+<<<<<<< HEAD
+=======
+    private final double INCHES_TO_MOTOR_COUNTS_RESOLUTION = 29;
+
+    // Vision
+>>>>>>> b90fad6c5bd9c658dc1cd1c7f2f52b6d5adc9092
     OpenCvCamera camera;
     CombinedHSVandAnglePipeline pipeline;
     double[][] calibrationData = new double[][]{
+//           {camera center x, camera center y of object, direct (Euclidean distance) distance from camera lens to object, horizontal ground distance of object from camera base, forward distance of object with respect to camera base}
             {1140, 401, 13.0, 3.5, 10.0},
             {487, 466, 14.5, -9.8, 7.8},
             {745, 295, 16.2, -5.9, 13.9},
@@ -44,8 +56,14 @@ public class SlidesPIDWithVision extends OpMode {
     };
     PixelToDistanceMapper mapper = new PixelToDistanceMapper(calibrationData);
 
+<<<<<<< HEAD
     public double target(double inches) {
         return (inches * 29);
+=======
+    // Conversion: Inches to encoder ticks
+    public double getTargetPosInMotorCounts(double inches) {
+        return (inches * INCHES_TO_MOTOR_COUNTS_RESOLUTION);
+>>>>>>> b90fad6c5bd9c658dc1cd1c7f2f52b6d5adc9092
     }
 
     enum VisionState {
@@ -141,9 +159,38 @@ public class SlidesPIDWithVision extends OpMode {
                 break;
         }
 
+<<<<<<< HEAD
         // PID Slide Control
         double currentAngle = slidesMotor.getCurrentPosition();
         double error = target(targetAngle) - currentAngle;
+=======
+        // Get target from vision snapshot
+        if (pipeline.hasProcessedSnapshot()) {
+            if (pipeline.getCenter() != null) {
+                PixelToDistanceMapper.DistanceResult result = mapper.getDistanceFromPixel(
+                        pipeline.getCenter().x, pipeline.getCenter().y
+                );
+
+                targetSlides = result.forwardDist;
+
+                // Clamp within physical limits
+                targetSlides = Math.max(0, Math.min(17, targetSlides));
+
+                telemetry.addData("Detected Objects", pipeline.getDetectedObjectsCount());
+                telemetry.addData("Vision Target (Forward Offset)", targetSlides);
+                telemetry.addData("Direct Distance", result.directDist);
+                telemetry.addData("Horizontal Offset", result.horizOffset);
+            } else {
+                telemetry.addLine("Snapshot processed but no object detected — center is null.");
+                telemetry.addData("Detected Objects", pipeline.getDetectedObjectsCount());
+            }
+        }
+
+
+        // PID Slide Logic
+        double currentPos = slidesMotor.getCurrentPosition();
+        double error = getTargetPosInMotorCounts(targetSlides) - currentPos;
+>>>>>>> b90fad6c5bd9c658dc1cd1c7f2f52b6d5adc9092
         integralSum += error * timer.seconds();
         double derivative = (error - lastError) / timer.seconds();
         double motorPower = (kP * error) + (kI * integralSum) + (kD * derivative);
@@ -165,10 +212,17 @@ public class SlidesPIDWithVision extends OpMode {
         follower.update();
 
         // Telemetry
+<<<<<<< HEAD
         telemetry.addData("Target Slide (in)", targetAngle);
         telemetry.addData("Encoder Target", target(targetAngle));
         telemetry.addData("Current Slide Pos", currentAngle);
         telemetry.addData("State", visionState);
+=======
+        telemetry.addData("Target Slide Angle (in)", targetSlides);
+        telemetry.addData("Encoder Target", getTargetPosInMotorCounts(targetSlides));
+        telemetry.addData("Current Pos", currentPos);
+        telemetry.addData("Error", error);
+>>>>>>> b90fad6c5bd9c658dc1cd1c7f2f52b6d5adc9092
         telemetry.addData("Motor Power", motorPower);
         telemetry.addData("Max Power", maxPower);
         telemetry.addData("X", follower.getPose().getX());
