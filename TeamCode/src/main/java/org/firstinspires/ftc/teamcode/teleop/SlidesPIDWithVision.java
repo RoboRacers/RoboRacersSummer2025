@@ -22,13 +22,11 @@ public class SlidesPIDWithVision extends OpMode {
     private DcMotor slidesMotor;
     private FtcDashboard dashboard;
 
-    // PID Constants
     public static double kP = 0.02;
     public static double kI = 0.00;
     public static double kD = 0.0000000001;
     public static double kF = 0.0;
 
-    // State
     public double targetAngle = 0.0;
     private double integralSum = 0;
     private double lastError = 0;
@@ -36,26 +34,30 @@ public class SlidesPIDWithVision extends OpMode {
     private ElapsedTime timer = new ElapsedTime();
     private final Pose startPose = new Pose(0, 0, 0);
 
-    // Vision
     OpenCvCamera camera;
     CombinedHSVandAnglePipeline pipeline;
     double[][] calibrationData = new double[][]{
             {1140, 401, 13.0, 3.5, 10.0},
             {487, 466, 14.5, -9.8, 7.8},
             {745, 295, 16.2, -5.9, 13.9},
-            {1178, 956,8.5,   2,  1.5 }
-
+            {1178, 956, 8.5, 2, 1.5}
     };
     PixelToDistanceMapper mapper = new PixelToDistanceMapper(calibrationData);
 
-    // Conversion: Inches to encoder ticks
     public double target(double inches) {
         return (inches * 29);
     }
 
+    enum VisionState {
+        IDLE, RETRACTING, WAITING_FOR_RETRACTION, SNAPSHOT_PENDING
+    }
+
+    VisionState visionState = VisionState.IDLE;
+    private boolean lastX = false;
+    private double retractStartTime = 0;
+
     @Override
     public void init() {
-        // Slides + Follower
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         slidesMotor = hardwareMap.get(DcMotor.class, "slidesMotor");
         follower.setStartingPose(startPose);
@@ -63,7 +65,6 @@ public class SlidesPIDWithVision extends OpMode {
         slidesMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slidesMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        // Vision
         int cameraMonitorViewId = hardwareMap.appContext.getResources()
                 .getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance()
@@ -83,10 +84,10 @@ public class SlidesPIDWithVision extends OpMode {
             }
         });
 
-        // Dashboard
         dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
 
+        pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.BLUE);
         timer.reset();
     }
 
@@ -97,37 +98,50 @@ public class SlidesPIDWithVision extends OpMode {
 
     @Override
     public void loop() {
-        // Trigger snapshot manually (optional)
+        // Handle X press for detection
+        boolean detectPressed = gamepad1.x && !lastX;
+        lastX = gamepad1.x;
 
-        pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.BLUE);
-        if (gamepad1.x) {
-            pipeline.triggerSnapshot();
+        switch (visionState) {
+            case IDLE:
+                if (detectPressed) {
+                    targetAngle = 0; // retract
+                    visionState = VisionState.RETRACTING;
+                    retractStartTime = getRuntime();
+                }
+                break;
+
+            case RETRACTING:
+                // Wait until slides close enough to 0 inches
+                if (Math.abs(slidesMotor.getCurrentPosition()) < target(0.5)){ //|| getRuntime() - retractStartTime > 1.5) {
+                    slidesMotor.setPower(0);
+                    visionState = VisionState.SNAPSHOT_PENDING;
+                    pipeline.triggerSnapshot();
+                }
+                break;
+
+            case SNAPSHOT_PENDING:
+                if (pipeline.hasProcessedSnapshot()) {
+                    if (pipeline.getCenter() != null) {
+                        PixelToDistanceMapper.DistanceResult result = mapper.getDistanceFromPixel(
+                                pipeline.getCenter().x, pipeline.getCenter().y
+                        );
+                        targetAngle = Math.max(0, Math.min(21, result.forwardDist));
+                        telemetry.addData("Detected", pipeline.getDetectedObjectsCount());
+                        telemetry.addData("Forward Dist", result.forwardDist);
+                    } else {
+                        telemetry.addLine("No object detected.");
+                        targetAngle = 0;
+                    }
+                    visionState = VisionState.IDLE;
+                }
+                break;
+
+            default:
+                break;
         }
 
-        // Get target from vision snapshot
-        if (pipeline.hasProcessedSnapshot()) {
-            if (pipeline.getCenter() != null) {
-                PixelToDistanceMapper.DistanceResult result = mapper.getDistanceFromPixel(
-                        pipeline.getCenter().x, pipeline.getCenter().y
-                );
-
-                targetAngle = result.forwardDist;
-
-                // Clamp within physical limits
-                targetAngle = Math.max(0, Math.min(17, targetAngle));
-
-                telemetry.addData("Detected Objects", pipeline.getDetectedObjectsCount());
-                telemetry.addData("Vision Target (Forward Offset)", targetAngle);
-                telemetry.addData("Direct Distance", result.directDist);
-                telemetry.addData("Horizontal Offset", result.horizOffset);
-            } else {
-                telemetry.addLine("Snapshot processed but no object detected — center is null.");
-                telemetry.addData("Detected Objects", pipeline.getDetectedObjectsCount());
-            }
-        }
-
-
-        // PID Slide Logic
+        // PID Slide Control
         double currentAngle = slidesMotor.getCurrentPosition();
         double error = target(targetAngle) - currentAngle;
         integralSum += error * timer.seconds();
@@ -137,12 +151,11 @@ public class SlidesPIDWithVision extends OpMode {
         if (Math.abs(motorPower) > Math.abs(maxPower)) {
             maxPower = motorPower;
         }
-
         slidesMotor.setPower(motorPower);
         lastError = error;
         timer.reset();
 
-        // Movement control
+        // Drive Control
         follower.setTeleOpMovementVectors(
                 -gamepad1.left_stick_y,
                 -gamepad1.left_stick_x,
@@ -152,13 +165,12 @@ public class SlidesPIDWithVision extends OpMode {
         follower.update();
 
         // Telemetry
-        telemetry.addData("Target Slide Angle (in)", targetAngle);
+        telemetry.addData("Target Slide (in)", targetAngle);
         telemetry.addData("Encoder Target", target(targetAngle));
-        telemetry.addData("Current Pos", currentAngle);
-        telemetry.addData("Error", error);
+        telemetry.addData("Current Slide Pos", currentAngle);
+        telemetry.addData("State", visionState);
         telemetry.addData("Motor Power", motorPower);
         telemetry.addData("Max Power", maxPower);
-
         telemetry.addData("X", follower.getPose().getX());
         telemetry.addData("Y", follower.getPose().getY());
         telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
