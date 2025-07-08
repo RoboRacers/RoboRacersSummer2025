@@ -6,19 +6,21 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.openftc.easyopencv.*;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.FConstants;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
 
-@TeleOp(name = "GimboVisionSlides", group = "Combined")
-public class SlidesPIDWithVision extends OpMode {
+@TeleOp(name = "GimboDriveSlides", group = "Combined")
+public class DriveSlidesVIsion extends OpMode {
 
     private Follower follower;
     private DcMotor slidesMotor;
@@ -35,6 +37,10 @@ public class SlidesPIDWithVision extends OpMode {
     private double maxPower = 0;
     private ElapsedTime timer = new ElapsedTime();
     private final Pose startPose = new Pose(0, 0, 0);
+
+    public Pose capturedPose = new Pose(0, 0, 0);
+
+    public double varForwardDistance = 0;
 
     OpenCvCamera camera;
     CombinedHSVandAnglePipeline pipeline;
@@ -113,6 +119,9 @@ public class SlidesPIDWithVision extends OpMode {
                     visionState = VisionState.RETRACTING;
                     retractStartTime = getRuntime();
                 }
+                else if (pipeline.getCenter() != null){
+                    targetAngle = Math.max(0, Math.min(17, varForwardDistance - follower.getPose().getX()+capturedPose.getX()));
+                }
                 break;
 
             case RETRACTING:
@@ -130,13 +139,14 @@ public class SlidesPIDWithVision extends OpMode {
                         PixelToDistanceMapper.DistanceResult result = mapper.getDistanceFromPixel(
                                 pipeline.getCenter().x, pipeline.getCenter().y
                         );
-                        targetAngle = Math.max(0, Math.min(21, result.forwardDist));
-                        //targetAngle = Math.max(0, Math.min(17, result.forwardDist));
+//                        targetAngle = Math.max(0, Math.min(17, result.forwardDist));
+                        varForwardDistance = result.forwardDist;
+                        capturedPose = follower.getPose();
                         telemetry.addData("Detected", pipeline.getDetectedObjectsCount());
                         telemetry.addData("Forward Dist", result.forwardDist);
                         telemetry.update();
                         try {
-                            sleep(2000);
+                            sleep(500);
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
