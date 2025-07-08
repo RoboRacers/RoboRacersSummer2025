@@ -47,7 +47,7 @@ public class SlidesPIDWithVision extends OpMode {
     PixelToDistanceMapper mapper = new PixelToDistanceMapper(calibrationData);
 
     public double target(double inches) {
-        return (inches * 27.92);
+        return (inches * 28.229);
 
         // return (inches * 35.294);
     }

@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.util.Constants;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Config
+@Disabled
 @TeleOp(name = "Camera GImbo", group = "Concept")
 public class CameraGimbo extends LinearOpMode {
     private OpenCvCamera camera;

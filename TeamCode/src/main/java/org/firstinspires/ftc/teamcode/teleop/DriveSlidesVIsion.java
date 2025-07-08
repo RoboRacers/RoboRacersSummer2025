@@ -35,12 +35,19 @@ public class DriveSlidesVIsion extends OpMode {
     private double integralSum = 0;
     private double lastError = 0;
     private double maxPower = 0;
+
+    public double manual = 0;
     private ElapsedTime timer = new ElapsedTime();
     private final Pose startPose = new Pose(0, 0, 0);
 
     public Pose capturedPose = new Pose(0, 0, 0);
 
     public double varForwardDistance = 0;
+
+    private double centerXpos = 0;
+
+    private double centerYpos = 0;
+
 
     OpenCvCamera camera;
     CombinedHSVandAnglePipeline pipeline;
@@ -53,8 +60,9 @@ public class DriveSlidesVIsion extends OpMode {
     PixelToDistanceMapper mapper = new PixelToDistanceMapper(calibrationData);
 
     public double target(double inches) {
-        return (inches * 27.92);
-
+//        return (inches * 27.92);
+//return (inches*28.16506); //if slides go all the way to 21.5 inches
+        return(inches  * 28.229);// if slides go below 19 inches
         // return (inches * 35.294);
     }
 
@@ -116,12 +124,42 @@ public class DriveSlidesVIsion extends OpMode {
             case IDLE:
                 if (detectPressed) {
                     targetAngle = 0; // retract
+                    manual = 0;
                     visionState = VisionState.RETRACTING;
                     retractStartTime = getRuntime();
                 }
                 else if (pipeline.getCenter() != null){
-                    targetAngle = Math.max(0, Math.min(17, varForwardDistance - follower.getPose().getX()+capturedPose.getX()));
-                }
+                   // extension = baseDistance - (currentDistanceToTarget - initialDistanceToTarget) + manual change
+                    //targetAngle = Math.max(0, Math.min(17, varForwardDistance - follower.getPose().getX()+capturedPose.getX()+manual));
+
+                    double heading = Math.toRadians(follower.getPose().getHeading());
+                    // in radians
+
+// The object is `varForwardDistance` forward of the robot
+                    double offsetX = varForwardDistance * Math.cos(heading);
+                    double offsetY = varForwardDistance * Math.sin(heading);
+
+// Field-relative position of the object
+                    double targetX = capturedPose.getX() + offsetX;
+                    double targetY = capturedPose.getY() + offsetY;
+
+                    Pose capturedSamplePose = new Pose(targetX, targetY);
+
+
+
+
+                    double deltaX = follower.getPose().getX() - capturedSamplePose.getX();
+                    double deltaY = follower.getPose().getY() - capturedSamplePose.getY();
+                    double currentDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+//                    double rawExtension = varForwardDistance - currentDistance;
+                    targetAngle = Math.max(0, Math.min(18.5, currentDistance + manual));
+
+
+//            failed        targetAngle = Math.max(0, Math.min(18.5, varForwardDistance - Math.sqrt(Math.pow(follower.getPose().getX(),2) + Math.pow(follower.getPose().getY(),2)) + Math.sqrt(Math.pow(capturedPose.getX(),2) + Math.pow(capturedPose.getY(),2)) + manual));
+            }
+
+
                 break;
 
             case RETRACTING:
@@ -139,6 +177,8 @@ public class DriveSlidesVIsion extends OpMode {
                         PixelToDistanceMapper.DistanceResult result = mapper.getDistanceFromPixel(
                                 pipeline.getCenter().x, pipeline.getCenter().y
                         );
+                        centerXpos  = pipeline.getCenter().x;
+                        centerYpos = pipeline.getCenter().y;
 //                        targetAngle = Math.max(0, Math.min(17, result.forwardDist));
                         varForwardDistance = result.forwardDist;
                         capturedPose = follower.getPose();
@@ -185,8 +225,18 @@ public class DriveSlidesVIsion extends OpMode {
         );
         follower.update();
 
-        // Telemetry
 
+        if (gamepad1.dpad_up){
+            manual+=0.1;
+        }
+        if (gamepad1.dpad_down){
+            manual-=0.1;
+        }
+
+        // Telemetry
+telemetry.addData("centerx", centerXpos );
+        telemetry.addData("centery", centerYpos);
+        telemetry.addData("forward distance", varForwardDistance );
         telemetry.addData("Target Slide (in)", targetAngle);
         telemetry.addData("Encoder Target", target(targetAngle));
         telemetry.addData("Current Slide Pos", currentAngle);
