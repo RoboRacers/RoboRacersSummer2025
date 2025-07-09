@@ -132,7 +132,7 @@ public class DriveSlidesVIsion extends OpMode {
                    // extension = baseDistance - (currentDistanceToTarget - initialDistanceToTarget) + manual change
                     //targetAngle = Math.max(0, Math.min(17, varForwardDistance - follower.getPose().getX()+capturedPose.getX()+manual));
 
-                    double heading = Math.toRadians(follower.getPose().getHeading());
+                    double heading = follower.getPose().getHeading();
                     // in radians
 
 // The object is `varForwardDistance` forward of the robot
@@ -245,7 +245,7 @@ telemetry.addData("centerx", centerXpos );
         telemetry.addData("Max Power", maxPower);
         telemetry.addData("X", follower.getPose().getX());
         telemetry.addData("Y", follower.getPose().getY());
-        telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
+        telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading())); // pedro auto gives it in radians
         telemetry.update();
     }
 
