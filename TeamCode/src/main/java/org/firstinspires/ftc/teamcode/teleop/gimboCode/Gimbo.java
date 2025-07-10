@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.teleop.gimboCode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -20,8 +20,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
  * @version 2.0, 12/30/2024
  */
 //@Disabled
-@TeleOp(name = "Gimbo Submirsible Avoidance", group = "Examples")
-public class GimboSubmersibleAvoidance extends OpMode {
+@TeleOp(name = "Gimbo", group = "Examples")
+public class Gimbo extends OpMode {
     private Follower follower;
     private DcMotor slidesMotor;
     //    private AnalogInput potentiometer;
@@ -31,9 +31,9 @@ public class GimboSubmersibleAvoidance extends OpMode {
     double maxPower;
 
     // Configuration variables (tunable via dashboard)
-    public static double kP = 0.02;
+    public static double kP = 0.08;
     public static double kI = 0.00;
-    public static double kD = 0.0000000001;
+    public static double kD = 0.0001;
     public static double kF = 0.0;
     public static double targetAngle = 0.0; // Target angle in degrees
     public double initTarget = 0.0; // Target angle in degrees
@@ -42,31 +42,15 @@ public class GimboSubmersibleAvoidance extends OpMode {
     private double lastTarget = 0;
 
     private ElapsedTime timer = new ElapsedTime();
-    private final Pose startPose = new Pose(-12,65,270);
-
-    public boolean avoidSubmerisble = true;
+    private final Pose startPose = new Pose(0,0,0);
 
     /** This method is call once when init is played, it initializes the follower **/
     public double target(double inches){
 
 //        return (inches * 30.2439);
 
-        return(inches  * 28.229);
+        return (inches * 27.92);
     }
-
-    private boolean isNearLine(double robotX, double robotY,
-                               double lineStartX, double lineEndX, double lineY,
-                               double safeDistance) {
-        // Check if robot X is within the X bounds of the segment
-        boolean inXBounds = (robotX >= Math.min(lineStartX, lineEndX)) &&
-                (robotX <= Math.max(lineStartX, lineEndX));
-
-        // Check if robot Y is within safe vertical distance of the line
-        boolean closeToLine = Math.abs(robotY - lineY) <= safeDistance;
-
-        return inXBounds && closeToLine;
-    }
-
 
 
     @Override
@@ -88,7 +72,6 @@ public class GimboSubmersibleAvoidance extends OpMode {
     /** This method is called continuously after Init while waiting to be started. **/
     @Override
     public void init_loop() {
-
 
         double currentAngle = slidesMotor.getCurrentPosition();
 
@@ -130,32 +113,11 @@ public class GimboSubmersibleAvoidance extends OpMode {
     @Override
     public void loop() {
 
-
-        double robotX = follower.getPose().getX();
-        double robotY = follower.getPose().getY();
-
-// Normal extension target
-        targetAngle = initTarget - robotX;
-
-// Clamp to mechanical limits
-        targetAngle = Math.max(0, Math.min(19, targetAngle));
-
-// Submersible avoidance
-        double safeDistance = 6.0; // distance threshold to retract slides
-        boolean nearAnyObstacle =
-                isNearLine(robotX, robotY, -24, -14.5, 24, safeDistance) ||
-                        isNearLine(robotX, robotY, 14.5, 24, 24, safeDistance)  ||
-                        isNearLine(robotX, robotY, -24, -14.5, -24, safeDistance) ||
-                        isNearLine(robotX, robotY, 14.5, 24, -24, safeDistance);
-
-        if (avoidSubmerisble && nearAnyObstacle) {
-            targetAngle = Math.min(targetAngle, 2.0); // clamp to safe value
-        }
+        targetAngle = initTarget - follower.getPose().getX();
 
 
-
-        if (targetAngle >= 19){
-            targetAngle = 19;
+        if (targetAngle >= 17){
+            targetAngle = 17;
         }
         else if (targetAngle <= 0){
             targetAngle = 0;

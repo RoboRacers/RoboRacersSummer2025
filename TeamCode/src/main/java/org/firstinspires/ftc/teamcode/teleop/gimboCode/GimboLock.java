@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.teleop.gimboCode;
 
 import static java.lang.Thread.sleep;
 
@@ -15,16 +15,20 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.FConstants;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
+import org.firstinspires.ftc.teamcode.teleop.CombinedHSVandAnglePipeline;
+import org.firstinspires.ftc.teamcode.teleop.PixelToDistanceMapper;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
-@TeleOp(name = "GimboDriveSlides", group = "Combined")
-public class DriveSlidesVIsion extends OpMode {
+@TeleOp(name = "Locked Gimbo", group = "Combined")
+public class GimboLock extends OpMode {
 
     private Follower follower;
     private DcMotor slidesMotor;
     private FtcDashboard dashboard;
+
+    public double turnPower = 0;
 
     public static double kP = 0.02;
     public static double kI = 0.00;
@@ -65,6 +69,12 @@ public class DriveSlidesVIsion extends OpMode {
         return(inches  * 28.229);// if slides go below 19 inches
         // return (inches * 35.294);
     }
+    private double angleWrap(double angle) {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle < -Math.PI) angle += 2 * Math.PI;
+        return angle;
+    }
+
 
     enum VisionState {
         IDLE, RETRACTING, WAITING_FOR_RETRACTION, SNAPSHOT_PENDING
@@ -120,11 +130,15 @@ public class DriveSlidesVIsion extends OpMode {
         boolean detectPressed = gamepad1.x && !lastX;
         lastX = gamepad1.x;
         telemetry.addData("x pressed?", detectPressed);
+        boolean isLockedOn = true;
+        telemetry.addData("locked?", isLockedOn);
+
 
         switch (visionState) {
             case IDLE:
                 if (detectPressed) {
                     targetAngle = 0; // retract
+                    isLockedOn = true;
                     manual = 0;
                     visionState = VisionState.RETRACTING;
                     retractStartTime = getRuntime();
@@ -147,6 +161,14 @@ public class DriveSlidesVIsion extends OpMode {
                     double forwardComponent = dx * Math.cos(robotHeading) + dy * Math.sin(robotHeading);
 // Step 5: Clamp and apply as extension
                     targetAngle = Math.max(0, Math.min(18.5, forwardComponent + manual));
+
+                    double desiredHeading = Math.atan2(dy, dx); // in radians
+                    double currentHeading = follower.getPose().getHeading();
+                    double headingError = angleWrap(desiredHeading - currentHeading);
+                    double kP = 1.5; // tune this
+                    turnPower = Math.max(-1.0, Math.min(1.0, kP * headingError)); // clamp
+
+
 //                   // extension = baseDistance - (currentDistanceToTarget - initialDistanceToTarget) + manual change
 //                    //targetAngle = Math.max(0, Math.min(17, varForwardDistance - follower.getPose().getX()+capturedPose.getX()+manual));
 //
@@ -222,11 +244,6 @@ public class DriveSlidesVIsion extends OpMode {
                 break;
         }
 
-
-
-
-
-
         // PID Slide Control
         double currentAngle = slidesMotor.getCurrentPosition();
         double error = target(targetAngle) - currentAngle;
@@ -241,11 +258,19 @@ public class DriveSlidesVIsion extends OpMode {
         lastError = error;
         timer.reset();
 
+        if (gamepad1.y) {
+            isLockedOn = false;
+        }
+
         // Drive Control
+        double driveY = -gamepad1.left_stick_y;
+        double driveX = -gamepad1.left_stick_x;
+        double turn = isLockedOn ? turnPower : -gamepad1.right_stick_x;
+
         follower.setTeleOpMovementVectors(
-                -gamepad1.left_stick_y,
-                -gamepad1.left_stick_x,
-                -gamepad1.right_stick_x,
+                driveY,
+                driveX,
+                turn,
                 true
         );
         follower.update();
@@ -257,6 +282,9 @@ public class DriveSlidesVIsion extends OpMode {
         else if (gamepad1.dpad_down){
             manual-=0.3;
         }
+
+
+
 
         // Telemetry
 telemetry.addData("centerx", centerXpos );
