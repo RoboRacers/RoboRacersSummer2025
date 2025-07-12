@@ -9,64 +9,45 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.FConstants;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
 
-/**
- * This is an example teleop that showcases movement and robot-centric driving.
- *
- * @author Baron Henderson - 20077 The Indubitables
- * @version 2.0, 12/30/2024
- */
-//@Disabled
-@TeleOp(name = "Gimbo Submirsible Avoidance", group = "Examples")
+@TeleOp(name = "Gimbo Submersible Avoidance", group = "Examples")
 public class GimboSubmersibleAvoidance extends OpMode {
     private Follower follower;
     private DcMotor slidesMotor;
-    //    private AnalogInput potentiometer;
     private FtcDashboard dashboard;
 
     double motorPower;
     double maxPower;
 
-    // Configuration variables (tunable via dashboard)
+    // PID Configuration
     public static double kP = 0.02;
     public static double kI = 0.00;
     public static double kD = 0.0000000001;
     public static double kF = 0.0;
-    public static double targetAngle = 0.0; // Target angle in degrees
-    public double initTarget = 0.0; // Target angle in degrees
+    public static double targetAngle = 0.0;
+    public double initTarget = 0.0;
     private double integralSum = 0;
     private double lastError = 0;
     private double lastTarget = 0;
 
     private ElapsedTime timer = new ElapsedTime();
-    private final Pose startPose = new Pose(-12,65,270);
+    private final Pose startPose = new Pose(-12, 65, Math.toRadians(270));
 
     public boolean avoidSubmerisble = true;
 
-    /** This method is call once when init is played, it initializes the follower **/
-    public double target(double inches){
-
-//        return (inches * 30.2439);
-
-        return(inches  * 28.229);
+    public double target(double inches) {
+        return inches * 28.229;
     }
 
-    private boolean isNearLine(double robotX, double robotY,
-                               double lineStartX, double lineEndX, double lineY,
-                               double safeDistance) {
-        // Check if robot X is within the X bounds of the segment
-        boolean inXBounds = (robotX >= Math.min(lineStartX, lineEndX)) &&
-                (robotX <= Math.max(lineStartX, lineEndX));
-
-        // Check if robot Y is within safe vertical distance of the line
-        boolean closeToLine = Math.abs(robotY - lineY) <= safeDistance;
-
-        return inXBounds && closeToLine;
+    private boolean isNearRectangle(double robotX, double robotY,
+                                    double rectXMin, double rectXMax,
+                                    double rectYMin, double rectYMax,
+                                    double buffer) {
+        return robotX >= rectXMin - buffer && robotX <= rectXMax + buffer &&
+                robotY >= rectYMin - buffer && robotY <= rectYMax + buffer;
     }
-
 
 
     @Override
@@ -78,120 +59,84 @@ public class GimboSubmersibleAvoidance extends OpMode {
         slidesMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slidesMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        // Initialize FTC Dashboard
         dashboard = FtcDashboard.getInstance();
-        telemetry = new MultipleTelemetry(telemetry,FtcDashboard.getInstance().getTelemetry());
+        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
         timer.reset();
         targetAngle = 15;
     }
 
-    /** This method is called continuously after Init while waiting to be started. **/
     @Override
     public void init_loop() {
-
-
         double currentAngle = slidesMotor.getCurrentPosition();
-
-        // Calculate error (using angles)
         double error = target(targetAngle) - currentAngle;
-
         integralSum += error * timer.seconds();
-
         double derivative = (error - lastError) / timer.seconds();
-
-//            double feedForward = kF * Math.sin(Math.toRadians(currentAngle));
-
         motorPower = (kP * error) + (kI * integralSum) + (kD * derivative);
-
         motorPower = Math.max(-1.0, Math.min(1.0, motorPower));
-
-        if(Math.abs(motorPower) > Math.abs(maxPower)){
+        if (Math.abs(motorPower) > Math.abs(maxPower)) {
             maxPower = motorPower;
         }
-
         slidesMotor.setPower(motorPower);
-
         lastError = error;
         lastTarget = target(targetAngle);
         timer.reset();
-
-        // Telemetry to dashboard
-
     }
 
-    /** This method is called once at the start of the OpMode. **/
     @Override
     public void start() {
         initTarget = targetAngle;
         follower.startTeleopDrive();
     }
 
-    /** This is the main loop of the opmode and runs continuously after play **/
     @Override
     public void loop() {
-
-
         double robotX = follower.getPose().getX();
         double robotY = follower.getPose().getY();
 
-// Normal extension target
         targetAngle = initTarget - robotX;
-
-// Clamp to mechanical limits
         targetAngle = Math.max(0, Math.min(19, targetAngle));
 
-// Submersible avoidance
-        double safeDistance = 6.0; // distance threshold to retract slides
+        double safeDistance = 2.0; // You can tune this
+        double slideLength = targetAngle; // in inches (or convert from encoder ticks if needed)
+        double heading = follower.getPose().getHeading(); // radians
+        double slideTipX = robotX + slideLength * Math.cos(heading);
+        double slideTipY = robotY + slideLength * Math.sin(heading);
+
+        telemetry.addData("Slide Tipx", slideTipX);
+
+        telemetry.addData("Slide Tipy", slideTipY);
+
         boolean nearAnyObstacle =
-                isNearLine(robotX, robotY, -24, -14.5, 24, safeDistance) ||
-                        isNearLine(robotX, robotY, 14.5, 24, 24, safeDistance)  ||
-                        isNearLine(robotX, robotY, -24, -14.5, -24, safeDistance) ||
-                        isNearLine(robotX, robotY, 14.5, 24, -24, safeDistance);
+                isNearRectangle(slideTipX, slideTipY, -24.0, -14.25, 23.0, 25.0, safeDistance) ||
+                        isNearRectangle(slideTipX, slideTipY, 14.25, 24.0, 23.0, 25.0, safeDistance)  ||
+                        isNearRectangle(slideTipX, slideTipY, -24.0, -14.25, -25.0, -23.0, safeDistance) ||
+                        isNearRectangle(slideTipX, slideTipY, 14.25, 24.0, -25.0, -23.0, safeDistance);
 
         if (avoidSubmerisble && nearAnyObstacle) {
-            targetAngle = Math.min(targetAngle, 2.0); // clamp to safe value
+            targetAngle = 2.0;
+        } else {
+            targetAngle = initTarget;
         }
 
-
-
-        if (targetAngle >= 19){
-            targetAngle = 19;
-        }
-        else if (targetAngle <= 0){
-            targetAngle = 0;
-        }
 
 
         double currentAngle = slidesMotor.getCurrentPosition();
-
-        // Calculate error (using angles)
         double error = target(targetAngle) - currentAngle;
-
         integralSum += error * timer.seconds();
-
         double derivative = (error - lastError) / timer.seconds();
-
-//            double feedForward = kF * Math.sin(Math.toRadians(currentAngle));
-
         motorPower = (kP * error) + (kI * integralSum) + (kD * derivative);
-
         motorPower = Math.max(-1.0, Math.min(1.0, motorPower));
-
-        if(Math.abs(motorPower) > Math.abs(maxPower)){
+        if (Math.abs(motorPower) > Math.abs(maxPower)) {
             maxPower = motorPower;
         }
 
         slidesMotor.setPower(motorPower);
-
         lastError = error;
         lastTarget = target(targetAngle);
         timer.reset();
 
-        // Telemetry to dashboard
-        telemetry.addData("Target Angle", target(targetAngle));
-
-        telemetry.addData("Target", targetAngle);
-//            telemetry.addData("Current Angle", currentAngle);
+        telemetry.addData("Target Angle (Ticks)", target(targetAngle));
+        telemetry.addData("Target (Inches)", targetAngle);
         telemetry.addData("Error", error);
         telemetry.addData("Motor Power", motorPower);
         telemetry.addData("kP", kP);
@@ -199,32 +144,22 @@ public class GimboSubmersibleAvoidance extends OpMode {
         telemetry.addData("kD", kD);
         telemetry.addData("kF", kF);
         telemetry.addData("Max Power Used", maxPower);
-//            telemetry.addData("Pot Voltage", potentiometer.getVoltage());
-//            telemetry.update();
-//        telemetry.update();// Important: Update the dashboard
 
-        /* Update Pedro to move the robot based on:
-        - Forward/Backward Movement: -gamepad1.left_stick_y
-        - Left/Right Movement: -gamepad1.left_stick_x
-        - Turn Left/Right Movement: -gamepad1.right_stick_x
-        - Robot-Centric Mode: true
-        */
-
-        follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+        follower.setTeleOpMovementVectors(
+                -gamepad1.left_stick_y,
+                -gamepad1.left_stick_x,
+                -gamepad1.right_stick_x*0.75,
+                true
+        );
         follower.update();
 
-        /* Telemetry Outputs of our Follower */
-        telemetry.addData("X", follower.getPose().getX());
-        telemetry.addData("Y", follower.getPose().getY());
+        telemetry.addData("X", robotX);
+        telemetry.addData("Y", robotY);
         telemetry.addData("Heading in Degrees", Math.toDegrees(follower.getPose().getHeading()));
-
-        /* Update Telemetry to the Driver Hub */
         telemetry.update();
         dashboard.getTelemetry();
-
     }
 
-    /** We do not use this because everything automatically should disable **/
     @Override
     public void stop() {
     }
