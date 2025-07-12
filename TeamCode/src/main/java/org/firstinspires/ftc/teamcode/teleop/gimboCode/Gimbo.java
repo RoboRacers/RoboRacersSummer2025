@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.teleop.gimboCode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -19,9 +19,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
  * @author Baron Henderson - 20077 The Indubitables
  * @version 2.0, 12/30/2024
  */
-
-@TeleOp(name = "Gimbo2", group = "Examples")
-public class GimboAndVision extends OpMode {
+//@Disabled
+@TeleOp(name = "Gimbo", group = "Examples")
+public class Gimbo extends OpMode {
     private Follower follower;
     private DcMotor slidesMotor;
     //    private AnalogInput potentiometer;
@@ -46,7 +46,10 @@ public class GimboAndVision extends OpMode {
 
     /** This method is call once when init is played, it initializes the follower **/
     public double target(double inches){
-        return (inches * 30.2439);
+
+//        return (inches * 30.2439);
+
+        return (inches * 27.92);
     }
 
 

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.teleop.failed;
 
 import static java.lang.Thread.sleep;
 
@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -14,9 +15,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.FConstants;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.teleop.CombinedHSVandAnglePipeline;
+import org.firstinspires.ftc.teamcode.teleop.EnhancedHSVandAngleOpmode;
+import org.firstinspires.ftc.teamcode.teleop.PixelToDistanceMapper;
 import org.openftc.easyopencv.*;
 
 /**
@@ -25,7 +27,7 @@ import org.openftc.easyopencv.*;
  * @author Baron Henderson - 20077 The Indubitables
  * @version 2.0, 12/30/2024
  */
-
+@Disabled
 @TeleOp(name = "Camera GImbo HSV", group = "Examples")
 public class GimboHSV extends OpMode {
     private Follower follower;
