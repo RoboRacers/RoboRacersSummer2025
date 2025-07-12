@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import static java.lang.Thread.sleep;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
@@ -29,7 +27,7 @@ public class SlidesPIDWithVision extends OpMode {
     public static double kD = 0.0000000001;
     public static double kF = 0.0;
 
-    public double targetAngle = 0.0;
+    public double targetSlides = 0.0;
     private double integralSum = 0;
     private double lastError = 0;
     private double maxPower = 0;
@@ -47,9 +45,7 @@ public class SlidesPIDWithVision extends OpMode {
     PixelToDistanceMapper mapper = new PixelToDistanceMapper(calibrationData);
 
     public double target(double inches) {
-        return (inches * 28.229);
-
-        // return (inches * 35.294);
+        return (inches * 29);
     }
 
     enum VisionState {
@@ -109,7 +105,7 @@ public class SlidesPIDWithVision extends OpMode {
         switch (visionState) {
             case IDLE:
                 if (detectPressed) {
-                    targetAngle = 0; // retract
+                    targetSlides = 0; // retract
                     visionState = VisionState.RETRACTING;
                     retractStartTime = getRuntime();
                 }
@@ -117,7 +113,7 @@ public class SlidesPIDWithVision extends OpMode {
 
             case RETRACTING:
                 // Wait until slides close enough to 0 inches
-                if (Math.abs(slidesMotor.getCurrentPosition()) < target(0.5)){ //|| getRuntime() - retractStartTime > 1.5) {
+                if (Math.abs(slidesMotor.getCurrentPosition()) < target(0.5) || getRuntime() - retractStartTime > 1.5) {
                     slidesMotor.setPower(0);
                     visionState = VisionState.SNAPSHOT_PENDING;
                     pipeline.triggerSnapshot();
@@ -130,19 +126,12 @@ public class SlidesPIDWithVision extends OpMode {
                         PixelToDistanceMapper.DistanceResult result = mapper.getDistanceFromPixel(
                                 pipeline.getCenter().x, pipeline.getCenter().y
                         );
-                        targetAngle = Math.max(0, Math.min(21, result.forwardDist));
-                        //targetAngle = Math.max(0, Math.min(17, result.forwardDist));
+                        targetSlides = Math.max(0, Math.min(17, result.forwardDist));
                         telemetry.addData("Detected", pipeline.getDetectedObjectsCount());
                         telemetry.addData("Forward Dist", result.forwardDist);
-                        telemetry.update();
-                        try {
-                            sleep(2000);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
                     } else {
                         telemetry.addLine("No object detected.");
-                        targetAngle = 0;
+                        targetSlides = 0;
                     }
                     visionState = VisionState.IDLE;
                 }
@@ -154,7 +143,7 @@ public class SlidesPIDWithVision extends OpMode {
 
         // PID Slide Control
         double currentAngle = slidesMotor.getCurrentPosition();
-        double error = target(targetAngle) - currentAngle;
+        double error = target(targetSlides) - currentAngle;
         integralSum += error * timer.seconds();
         double derivative = (error - lastError) / timer.seconds();
         double motorPower = (kP * error) + (kI * integralSum) + (kD * derivative);
@@ -176,9 +165,8 @@ public class SlidesPIDWithVision extends OpMode {
         follower.update();
 
         // Telemetry
-
-        telemetry.addData("Target Slide (in)", targetAngle);
-        telemetry.addData("Encoder Target", target(targetAngle));
+        telemetry.addData("Target Slide (in)", targetSlides);
+        telemetry.addData("Encoder Target", target(targetSlides));
         telemetry.addData("Current Slide Pos", currentAngle);
         telemetry.addData("State", visionState);
         telemetry.addData("Motor Power", motorPower);

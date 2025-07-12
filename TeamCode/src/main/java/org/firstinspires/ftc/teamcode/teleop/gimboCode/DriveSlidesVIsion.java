@@ -29,7 +29,7 @@ public class DriveSlidesVIsion extends OpMode {
     private FtcDashboard dashboard;
 
     public static double kP = 0.02;
-    public static double kI = 0.00;
+    public static double kI = 0.0000000001;
     public static double kD = 0.0000000001;
     public static double kF = 0.0;
 
