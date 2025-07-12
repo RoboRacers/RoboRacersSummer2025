@@ -27,6 +27,8 @@ public class GimboLock extends OpMode {
     private Follower follower;
     private DcMotor slidesMotor;
     private FtcDashboard dashboard;
+    private boolean isLockedOn = false;
+
 
     public double turnPower = 0;
 
@@ -130,7 +132,13 @@ public class GimboLock extends OpMode {
         boolean detectPressed = gamepad1.x && !lastX;
         lastX = gamepad1.x;
         telemetry.addData("x pressed?", detectPressed);
-        boolean isLockedOn = true;
+//        boolean isLockedOn = true;
+
+
+        if (gamepad1.y) {
+            isLockedOn = false;
+        }
+
         telemetry.addData("locked?", isLockedOn);
 
 
@@ -166,7 +174,10 @@ public class GimboLock extends OpMode {
                     double currentHeading = follower.getPose().getHeading();
                     double headingError = angleWrap(desiredHeading - currentHeading);
                     double kP = 1.5; // tune this
-                    turnPower = Math.max(-1.0, Math.min(1.0, kP * headingError)); // clamp
+// Scale rotation power based on slide extension
+                    double extensionScale = Math.max(0.2, 1.0 - (targetAngle / 18.5)); // closer to 0 → stronger turn, farther → gentler
+                    double turnKp = 1.2 * extensionScale; // adjust base as needed
+                    turnPower = Math.max(-1.0, Math.min(1.0, turnKp * headingError));
 
 
 //                   // extension = baseDistance - (currentDistanceToTarget - initialDistanceToTarget) + manual change
