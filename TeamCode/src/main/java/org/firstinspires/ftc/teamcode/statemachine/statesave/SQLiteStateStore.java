@@ -1,3 +1,4 @@
+// --- File 1: SQLiteStateStore.java ---
 package org.firstinspires.ftc.teamcode.statemachine.statesave;
 
 import android.content.ContentValues;
@@ -16,7 +17,23 @@ public class SQLiteStateStore {
         MOTOR_POWER,
         POSE_X,
         POSE_Y,
-        HEADING
+        HEADING,
+        MOVEMENT_STATE,
+        SLIDE_STATE,
+        SLIDE_POSITION
+    }
+
+    public enum MovementState {
+        MOVING,
+        STOPPED,
+        JUST_STOPPED
+    }
+
+    public enum SlideState {
+        EXTENDED,
+        EXTENDING,
+        RETRACTED,
+        RETRACTING
     }
 
     private final Map<RobotStateKey, StateRule<Double>> ruleMap = new HashMap<>();
@@ -33,9 +50,7 @@ public class SQLiteStateStore {
 
     public void set(RobotStateKey key, double value) {
         StateRule<Double> rule = ruleMap.get(key);
-        if (rule != null && !rule.isValid(value)) {
-            return;
-        }
+        if (rule != null && !rule.isValid(value)) return;
 
         ContentValues values = new ContentValues();
         values.put("state_key", key.name());
@@ -43,6 +58,46 @@ public class SQLiteStateStore {
         db.insertWithOnConflict("robot_state", null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
         notifySubscribers(key, value);
+    }
+
+    public void setMovementState(MovementState state) {
+        ContentValues values = new ContentValues();
+        values.put("state_key", RobotStateKey.MOVEMENT_STATE.name());
+        values.put("value", state.name());
+        db.insertWithOnConflict("robot_state", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        notifySubscribers(RobotStateKey.MOVEMENT_STATE, state.ordinal());
+    }
+
+    public void setSlideState(SlideState state) {
+        ContentValues values = new ContentValues();
+        values.put("state_key", RobotStateKey.SLIDE_STATE.name());
+        values.put("value", state.name());
+        db.insertWithOnConflict("robot_state", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        notifySubscribers(RobotStateKey.SLIDE_STATE, state.ordinal());
+    }
+
+    public MovementState getMovementState() {
+        Cursor cursor = db.rawQuery("SELECT value FROM robot_state WHERE state_key = ?",
+                new String[]{RobotStateKey.MOVEMENT_STATE.name()});
+        if (cursor.moveToFirst()) {
+            String val = cursor.getString(0);
+            cursor.close();
+            return MovementState.valueOf(val);
+        }
+        cursor.close();
+        return MovementState.STOPPED;
+    }
+
+    public SlideState getSlideState() {
+        Cursor cursor = db.rawQuery("SELECT value FROM robot_state WHERE state_key = ?",
+                new String[]{RobotStateKey.SLIDE_STATE.name()});
+        if (cursor.moveToFirst()) {
+            String val = cursor.getString(0);
+            cursor.close();
+            return SlideState.valueOf(val);
+        }
+        cursor.close();
+        return SlideState.RETRACTED;
     }
 
     public double get(RobotStateKey key) {
@@ -68,11 +123,9 @@ public class SQLiteStateStore {
         double updated = updateFn.applyAsDouble(current);
 
         StateRule<Double> rule = ruleMap.get(key);
-        if (rule != null && !rule.isValid(updated)) {
-            return;
-        }
+        if (rule != null && !rule.isValid(updated)) return;
 
-        set(key, updated); // `set` already triggers subscribers
+        set(key, updated);
     }
 
     public void subscribe(RobotStateKey key, StateSubscriber subscriber) {
@@ -87,6 +140,7 @@ public class SQLiteStateStore {
             }
         }
     }
+
     public void resetDatabase() {
         db.execSQL("DROP TABLE IF EXISTS robot_state");
         db.execSQL("CREATE TABLE robot_state (state_key TEXT PRIMARY KEY, value TEXT)");

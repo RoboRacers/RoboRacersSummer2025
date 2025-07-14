@@ -8,7 +8,6 @@ public class RobotStateDBHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "robot_state.db";
     private static final int DB_VERSION = 2;
 
-    // This is a constructor
     public RobotStateDBHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
     }
