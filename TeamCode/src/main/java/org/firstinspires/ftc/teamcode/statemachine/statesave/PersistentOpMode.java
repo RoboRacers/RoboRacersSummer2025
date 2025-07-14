@@ -3,9 +3,13 @@ package org.firstinspires.ftc.teamcode.statemachine.statesave;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @TeleOp(name = "Persistent TeleOp", group = "Examples")
 public class PersistentOpMode extends LinearOpMode {
     private SQLiteStateStore stateStore;
+    private List<String> batteryHistory = new ArrayList<>();
 
     @Override
     public void runOpMode() {
@@ -23,11 +27,16 @@ public class PersistentOpMode extends LinearOpMode {
             stateStore.set(SQLiteStateStore.RobotStateKey.MOTOR_POWER, 0.7);
         }
 
+        // Subscribe to battery changes and record them
+        stateStore.subscribe(SQLiteStateStore.RobotStateKey.BATTERY_LEVEL, (key, newValue) -> {
+            batteryHistory.add("Battery changed: " + newValue);
+        });
+
         waitForStart();
 
         while (opModeIsActive()) {
             double battery = stateStore.get(SQLiteStateStore.RobotStateKey.BATTERY_LEVEL);
-            telemetry.addData("Battery", battery);
+            telemetry.addData("Current Battery", battery);
 
             // Only reduce battery if above 0
             if (battery > 0) {
@@ -35,10 +44,15 @@ public class PersistentOpMode extends LinearOpMode {
             }
 
             // Reset the database if X is pressed
-            if (gamepad1.square) {
+            if (gamepad1.x) {
                 stateStore.resetDatabase();
-                stateStore.set(SQLiteStateStore.RobotStateKey.BATTERY_LEVEL, 95.0);
+                batteryHistory.clear();
                 telemetry.addLine("Database reset!");
+            }
+
+            // Show battery change history
+            for (String message : batteryHistory) {
+                telemetry.addLine(message);
             }
 
             telemetry.update();

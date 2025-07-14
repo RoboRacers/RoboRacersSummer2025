@@ -5,8 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.DoubleUnaryOperator;
 
 public class SQLiteStateStore {
@@ -21,8 +20,8 @@ public class SQLiteStateStore {
     }
 
     private final Map<RobotStateKey, StateRule<Double>> ruleMap = new HashMap<>();
+    private final Map<RobotStateKey, List<StateSubscriber>> subscriberMap = new HashMap<>();
 
-    // Constructor
     public SQLiteStateStore(Context context) {
         RobotStateDBHelper helper = new RobotStateDBHelper(context);
         db = helper.getWritableDatabase();
@@ -35,13 +34,15 @@ public class SQLiteStateStore {
     public void set(RobotStateKey key, double value) {
         StateRule<Double> rule = ruleMap.get(key);
         if (rule != null && !rule.isValid(value)) {
-            return; // Don't update if invalid
+            return;
         }
 
         ContentValues values = new ContentValues();
         values.put("state_key", key.name());
         values.put("value", String.valueOf(value));
         db.insertWithOnConflict("robot_state", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+
+        notifySubscribers(key, value);
     }
 
     public double get(RobotStateKey key) {
@@ -66,15 +67,26 @@ public class SQLiteStateStore {
         double current = get(key);
         double updated = updateFn.applyAsDouble(current);
 
-        // Re-apply rule here to enforce on updates
         StateRule<Double> rule = ruleMap.get(key);
         if (rule != null && !rule.isValid(updated)) {
-            return; // Skip invalid update
+            return;
         }
 
-        set(key, updated);
+        set(key, updated); // `set` already triggers subscribers
     }
 
+    public void subscribe(RobotStateKey key, StateSubscriber subscriber) {
+        subscriberMap.computeIfAbsent(key, k -> new ArrayList<>()).add(subscriber);
+    }
+
+    private void notifySubscribers(RobotStateKey key, double newValue) {
+        List<StateSubscriber> subscribers = subscriberMap.get(key);
+        if (subscribers != null) {
+            for (StateSubscriber subscriber : subscribers) {
+                subscriber.onStateUpdate(key, newValue);
+            }
+        }
+    }
     public void resetDatabase() {
         db.execSQL("DROP TABLE IF EXISTS robot_state");
         db.execSQL("CREATE TABLE robot_state (state_key TEXT PRIMARY KEY, value TEXT)");

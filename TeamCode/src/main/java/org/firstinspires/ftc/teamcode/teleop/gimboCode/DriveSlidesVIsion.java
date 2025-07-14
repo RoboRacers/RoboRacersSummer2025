@@ -149,42 +149,7 @@ public class DriveSlidesVIsion extends OpMode {
                     double forwardComponent = dx * Math.cos(robotHeading) + dy * Math.sin(robotHeading);
 // Step 5: Clamp and apply as extension
                     targetAngle = Math.max(0, Math.min(18.5, forwardComponent + manual));
-//                   // extension = baseDistance - (currentDistanceToTarget - initialDistanceToTarget) + manual change
-//                    //targetAngle = Math.max(0, Math.min(17, varForwardDistance - follower.getPose().getX()+capturedPose.getX()+manual));
-//
-//                    double heading = follower.getPose().getHeading();
-//                    // in radians
-//
-// The object is `varForwardDistance` forward of the robot
-//                    double offsetX = varForwardDistance * Math.cos(heading);
-//                    double offsetY = varForwardDistance * Math.sin(heading);
-//
-// Field-relative position of the object
-//                    double targetX = capturedPose.getX() + offsetX;
-//                    double targetY = capturedPose.getY() + offsetY;
-//
-//
-//                    double dx = targetX - follower.getPose().getX();
-//                    double dy = targetY - follower.getPose().getY();
-//
-//
-//                    // Rotate the vector by -heading
-//                    forwardComponent = dx * Math.cos(heading) + dy * Math.sin(heading);
-//                    //// lateralComponent = -dx * Math.sin(heading) + dy * Math.cos(heading); // if needed
-//                    targetAngle = Math.max(0, Math.min(18.5, forwardComponent + manual));
-//
-//
-//                    Pose capturedSamplePose = new Pose(targetX, targetY);
-//                    double deltaX = follower.getPose().getX() - capturedSamplePose.getX();
-//                    double deltaY = follower.getPose().getY() - capturedSamplePose.getY();
-//                    double currentDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-//
-//                    double rawExtension = varForwardDistance - currentDistance;
-//                    targetAngle = Math.max(0, Math.min(18.5, currentDistance + manual));
-//
-//
-//            failed        targetAngle = Math.max(0, Math.min(18.5, varForwardDistance - Math.sqrt(Math.pow(follower.getPose().getX(),2) + Math.pow(follower.getPose().getY(),2)) + Math.sqrt(Math.pow(capturedPose.getX(),2) + Math.pow(capturedPose.getY(),2)) + manual));
-            }
+}
                 break;
             case RETRACTING:
                 // Wait until slides close enough to 0 inches
