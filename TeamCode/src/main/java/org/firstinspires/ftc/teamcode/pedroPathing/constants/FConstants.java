@@ -26,17 +26,17 @@ public class FConstants {
         FollowerConstants.forwardZeroPowerAcceleration = -44.5;
         FollowerConstants.lateralZeroPowerAcceleration = -72;
 
-        FollowerConstants.translationalPIDFCoefficients.setCoefficients(0.4,0.001,0.006,0);
+        FollowerConstants.translationalPIDFCoefficients.setCoefficients(0.04,0.00,0.001,0);
         FollowerConstants.useSecondaryTranslationalPID = true;
-        FollowerConstants.secondaryTranslationalPIDFCoefficients.setCoefficients(0.25,0.001,0.05,0); // Not being used, @see useSecondaryTranslationalPID
+        FollowerConstants.secondaryTranslationalPIDFCoefficients.setCoefficients(0.015,0.004,0.000001,0); // Not being used, @see useSecondaryTranslationalPID
 
         FollowerConstants.headingPIDFCoefficients.setCoefficients(2,0,0.1,0);
         FollowerConstants.useSecondaryHeadingPID = true;
         FollowerConstants.secondaryHeadingPIDFCoefficients.setCoefficients(2.2,0,0.05,0); // Not being used, @see useSecondaryHeadingPID
 
-        FollowerConstants.drivePIDFCoefficients.setCoefficients(0.01,0,0.0001,0.6,0.00001);
+        FollowerConstants.drivePIDFCoefficients.setCoefficients(0.02,0,0.001,0.6,0.00001);
         FollowerConstants.useSecondaryDrivePID = true;
-        FollowerConstants.secondaryDrivePIDFCoefficients.setCoefficients(0.015,0,0,0.6,0); // Not being used, @see useSecondaryDrivePID
+        FollowerConstants.secondaryDrivePIDFCoefficients.setCoefficients(0.01,0.01,0,0.6,0); // Not being used, @see useSecondaryDrivePID
 
         FollowerConstants.zeroPowerAccelerationMultiplier = 4;
         FollowerConstants.centripetalScaling = 0.0005;
