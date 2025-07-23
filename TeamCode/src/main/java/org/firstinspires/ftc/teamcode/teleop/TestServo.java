@@ -1,47 +1,48 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.teleop;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-@TeleOp(name="Servo Control with Gamepad", group="Tutorials")
+@TeleOp(name = "tessttyyyyy Servo")
 public class TestServo extends LinearOpMode {
 
-    // Declare a Servo object
-    private Servo myServo;
-
-    // Define the initial servo position (e.g., 0.5 for the center)
-//    private double servoPosition = 0.5;
-
-    // Define constants for the servo's movement increments or decrements
-//    private static final double SERVO_INCREMENT = 0.01; // Adjust this value for smoother or faster movement
+    private Servo servo;
+    private double servoPosition = 0.5;  // Start at middle
+    private final double INCREMENT = 0.01;  // Step size
+    private final double MIN_POS = 0.0;
+    private final double MAX_POS = 1.0;
 
     @Override
     public void runOpMode() {
-        // Initialize the servo from the hardware map
-        // Replace "my_servo" with the name you configured for your servo in the Robot Controller app
-        myServo = hardwareMap.get(Servo.class, "turret");
+        servo = hardwareMap.get(Servo.class, "servo");
+        servo.setPosition(servoPosition);
 
-        // Set the initial position of the servo
-//        myServo.setPosition(servoPosition);
-
-        // Display initial servo position on the Driver Station
-//        telemetry.addData("Status", "Initialized");
-//        telemetry.addData("Servo Position", servoPosition);
-//        telemetry.update();
-
-        // Wait for the game to start (driver presses PLAY)
+        telemetry.addLine("Ready - Press Play");
+        telemetry.update();
         waitForStart();
 
-        // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            // Right trigger increases position
+            if (gamepad1.right_trigger > 0.1) {
+                servoPosition += INCREMENT;
+            }
 
-            // Control the servo with the D-pad UP button (increase position)
-            if(gamepad1.x)
-                myServo.setPosition(gamepad1.left_stick_y);
-            // Display the current servo position on the Driver Station
-            telemetry.addData("Servo Position", myServo.getPosition());
+            // Left trigger decreases position
+            if (gamepad1.left_trigger > 0.1) {
+                servoPosition -= INCREMENT;
+            }
+
+            // Clamp the position to [0.0, 1.0]
+            servoPosition = Math.max(MIN_POS, Math.min(MAX_POS, servoPosition));
+
+            // Set the servo position
+            servo.setPosition(servoPosition);
+
+            telemetry.addData("Servo Position", servoPosition);
             telemetry.update();
+
+            sleep(20); // small delay to avoid flooding
         }
     }
 }
