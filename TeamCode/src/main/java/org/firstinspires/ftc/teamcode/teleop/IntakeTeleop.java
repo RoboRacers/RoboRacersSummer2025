@@ -16,9 +16,9 @@ public class IntakeTeleop extends OpMode {
 
     @Override
     public void init() {
-        heightServo = hardwareMap.get(Servo.class, "heightServo");
-        rotateServo = hardwareMap.get(Servo.class, "rotateServo");
-        clawServo   = hardwareMap.get(Servo.class, "clawServo");
+        heightServo = hardwareMap.get(Servo.class, "hS");
+        rotateServo = hardwareMap.get(Servo.class, "rS");
+        clawServo   = hardwareMap.get(Servo.class, "cS");
 
         heightServo.setPosition(heightPos);
         rotateServo.setPosition(rotatePos);
@@ -47,10 +47,15 @@ public class IntakeTeleop extends OpMode {
             clawServo.setPosition(0.3); // Close
         }
 
-        // Telemetry
-        telemetry.addData("Height Pos", heightPos);
-        telemetry.addData("Rotate Pos", rotatePos);
-        telemetry.addData("Claw Pos", clawServo.getPosition());
+        // Telemetry - Internal & Actual Servo Positions
+        telemetry.addData("Height Pos (target)", heightPos);
+        telemetry.addData("Height Pos (actual)", heightServo.getPosition());
+
+        telemetry.addData("Rotate Pos (target)", rotatePos);
+        telemetry.addData("Rotate Pos (actual)", rotateServo.getPosition());
+
+        telemetry.addData("Claw Pos (actual)", clawServo.getPosition());
+
         telemetry.update();
     }
 }
