@@ -7,8 +7,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import java.util.Arrays;
 import java.util.List;
-
-// Import Intake and Deposit subsystem classes
 import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.Intake;
 import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.Deposit;
 
@@ -19,32 +17,42 @@ import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.Deposit;
  * - left_stick_y: Forward/Backward (inverted)
  * - left_stick_x: Strafe Left/Right
  * - right_stick_x: Rotate
- * (Same as the driving in your example LocalizationTest)
  *
  * Gamepad 2 – Manipulators (Intake + Deposit)
  *
- * Intake Functions
- * Control               | Function
- * ---------------------|------------------------------
- * dpad_up / dpad_down  | Increase/decrease height servo
- * dpad_right / dpad_left | Increase/decrease rotate servo
- * x                    | Open claw
- * b                    | Close claw
- * left_stick_y         | Intake slides motor power (up/down)
+ * Intake
+ * dpad_up/down     → Height Servo ↑↓
+ * dpad_left/right  → Rotate Servo ←→
+ * x/b              → Claw open/close
+ * left_stick_y     → Intake Slide Motor
  *
- * Deposit Functions
- * Control              | Function
- * --------------------|------------------------------
- * a                    | Open claw
- * y                    | Close claw
- * left_bumper          | Raise lift servos (setLift(1.0))
- * right_bumper         | Lower lift servos (setLift(0.0))
- * right_trigger        | Move wrist up (wrist += 0.01)
- * left_trigger         | Move wrist down (wrist -= 0.01)
- * right_stick_y        | Deposit slides motor power (up/down)
+ * Deposit
+ * a/y              → Deposit Claw open/close
+ * left/right_bumper→ Lift Servos ↑↓
+ * left/right_trigger → Wrist Servo ↓↑
+ * right_stick_y    → Deposit Slide Motor
+ *
+ * Hardware Configuration (Driver Hub > Robot Config):
+ *
+ * Motors:
+ * - "leftFront"     → DcMotorEx
+ * - "leftRear"      → DcMotorEx
+ * - "rightFront"    → DcMotorEx
+ * - "rightRear"     → DcMotorEx
+ * - "intakeSlide"   → DcMotorEx
+ * - "depositSlide"  → DcMotorEx
+ *
+ * Servos:
+ * - "heightServo"   → Servo
+ * - "rotateServo"   → Servo
+ * - "clawServo"     → Servo (on Intake)
+ * - "depositClaw"   → Servo
+ * - "liftLeft"      → Servo
+ * - "liftRight"     → Servo
+ * - "wristServo"    → Servo
  */
 
-@TeleOp(name = "Everything TeleOp", group = "Main")
+@TeleOp(name = "LobsterCup TeleOp (For my goat Ishaan ~ Mith)", group = "Main")
 public class FinalTeleo extends OpMode {
 
     // Drivetrain
@@ -99,57 +107,54 @@ public class FinalTeleo extends OpMode {
         // === INTAKE (gamepad 2) ===
 
         // Height
-        if (gamepad2.dpad_up) {
-            heightPos += 0.01;
-        } else if (gamepad2.dpad_down) {
-            heightPos -= 0.01;
-        }
+        if (gamepad2.dpad_up) heightPos += 0.01;
+        else if (gamepad2.dpad_down) heightPos -= 0.01;
         intake.setHeightPosition(clamp(heightPos));
 
         // Rotation
-        if (gamepad2.dpad_right) {
-            rotatePos += 0.01;
-        } else if (gamepad2.dpad_left) {
-            rotatePos -= 0.01;
-        }
+        if (gamepad2.dpad_right) rotatePos += 0.01;
+        else if (gamepad2.dpad_left) rotatePos -= 0.01;
         intake.setRotatePosition(clamp(rotatePos));
 
         // Claw
-        if (gamepad2.x) {
-            intake.setClawOpen(true);
-        } else if (gamepad2.b) {
-            intake.setClawOpen(false);
-        }
+        if (gamepad2.x) intake.setClawOpen(true);
+        else if (gamepad2.b) intake.setClawOpen(false);
 
         // Slides
         intake.setSlidesPower(-gamepad2.left_stick_y);
 
         // === DEPOSIT (gamepad 2) ===
 
-        // Deposit claw
-        if (gamepad2.a) {
-            deposit.setClawOpen(true);
-        } else if (gamepad2.y) {
-            deposit.setClawOpen(false);
-        }
+        // Claw
+        if (gamepad2.a) deposit.setClawOpen(true);
+        else if (gamepad2.y) deposit.setClawOpen(false);
 
-        // Lift servos
-        if (gamepad2.left_bumper) {
-            deposit.moveLift(1.0); // up
-        } else if (gamepad2.right_bumper) {
-            deposit.moveLift(0.0); // down
-        }
+        // Lift
+        if (gamepad2.left_bumper) deposit.moveLift(1.0);
+        else if (gamepad2.right_bumper) deposit.moveLift(0.0);
 
         // Wrist
-        if (gamepad2.right_trigger > 0.05) {
-            wristPos += 0.01;
-        } else if (gamepad2.left_trigger > 0.05) {
-            wristPos -= 0.01;
-        }
+        if (gamepad2.right_trigger > 0.05) wristPos += 0.01;
+        else if (gamepad2.left_trigger > 0.05) wristPos -= 0.01;
         deposit.moveWrist(clamp(wristPos));
 
-        // Deposit slides
+        // Slides
         deposit.setSlidesPower(-gamepad2.right_stick_y);
+
+        // === TELEMETRY ===
+        telemetry.addLine("🎮 Gamepad 2 Controls");
+        telemetry.addData("Height Servo", heightPos);
+        telemetry.addData("Rotate Servo", rotatePos);
+        telemetry.addData("Wrist Servo", wristPos);
+        telemetry.addData("Intake Slide Power", -gamepad2.left_stick_y);
+        telemetry.addData("Deposit Slide Power", -gamepad2.right_stick_y);
+
+        telemetry.addData("Intake Claw", gamepad2.x ? "Open" : (gamepad2.b ? "Close" : "Idle"));
+        telemetry.addData("Deposit Claw", gamepad2.a ? "Open" : (gamepad2.y ? "Close" : "Idle"));
+        telemetry.addData("Lift", gamepad2.left_bumper ? "Up" : (gamepad2.right_bumper ? "Down" : "Idle"));
+        telemetry.addData("Wrist", gamepad2.right_trigger > 0.05 ? "Up" : (gamepad2.left_trigger > 0.05 ? "Down" : "Idle"));
+
+        telemetry.update();
     }
 
     private double clamp(double value) {
