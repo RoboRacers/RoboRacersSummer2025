@@ -13,6 +13,11 @@ public class Intake {
     private double heightPos = 0.5;
     private double rotatePos = 0.5;
 
+    private double targetInches = 0;
+    private double kP = 0.02, kI = 0.0000000001, kD = 0.0000000001;
+    private double integralSum = 0, lastError = 0;
+    private long lastTime = System.nanoTime();
+
     public void init(HardwareMap hardwareMap) {
         heightServo = hardwareMap.get(Servo.class, "hS");
         rotateServo = hardwareMap.get(Servo.class, "rS");
@@ -24,48 +29,47 @@ public class Intake {
         clawServo.setPosition(0.3); // Closed
 
         slidesMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slidesMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    // Adjust height servo position
+    public void setSlidesTargetInches(double inches) {
+        targetInches = inches;
+    }
+
+    public void update() {
+        double ticks = inchesToTicks(targetInches);
+        double current = slidesMotor.getCurrentPosition();
+        double error = ticks - current;
+        double dt = (System.nanoTime() - lastTime) / 1e9;
+        integralSum += error * dt;
+        double derivative = (error - lastError) / dt;
+        double power = kP * error + kI * integralSum + kD * derivative;
+        power = Math.max(-1, Math.min(1, power));
+        slidesMotor.setPower(power);
+        lastError = error;
+        lastTime = System.nanoTime();
+    }
+
     public void setHeightPosition(double position) {
         heightPos = clamp(position);
         heightServo.setPosition(heightPos);
     }
 
-    // Adjust rotation servo position
     public void setRotatePosition(double position) {
         rotatePos = clamp(position);
         rotateServo.setPosition(rotatePos);
     }
 
-    // Open or close claw
     public void setClawOpen(boolean open) {
         clawServo.setPosition(open ? 1.0 : 0.3);
     }
 
-    // Set slides motor power
-    public void setSlidesPower(double power) {
-        slidesMotor.setPower(power);
-    }
-
-    // Getters (optional for telemetry/debugging in master file)
-    public double getHeightPosition() {
-        return heightServo.getPosition();
-    }
-
-    public double getRotatePosition() {
-        return rotateServo.getPosition();
-    }
-
-    public double getClawPosition() {
-        return clawServo.getPosition();
-    }
-
-    public double getSlidesPower() {
-        return slidesMotor.getPower();
-    }
-
     private double clamp(double value) {
         return Math.max(0.0, Math.min(1.0, value));
+    }
+
+    private double inchesToTicks(double inches) {
+        return inches * 28.229;
     }
 }

@@ -2,13 +2,11 @@ package org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import java.util.Arrays;
 import java.util.List;
-import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.Intake;
-import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.Deposit;
 
 /**
  * Gamepad Mapping Plan
@@ -120,8 +118,8 @@ public class FinalTeleo extends OpMode {
         if (gamepad2.x) intake.setClawOpen(true);
         else if (gamepad2.b) intake.setClawOpen(false);
 
-        // Slides
-        intake.setSlidesPower(-gamepad2.left_stick_y);
+        // Slides – PID Target
+        intake.setSlidesTargetInches(-gamepad2.left_stick_y * 10);  // map joystick to 0–10in range
 
         // === DEPOSIT (gamepad 2) ===
 
@@ -138,16 +136,20 @@ public class FinalTeleo extends OpMode {
         else if (gamepad2.left_trigger > 0.05) wristPos -= 0.01;
         deposit.moveWrist(clamp(wristPos));
 
-        // Slides
-        deposit.setSlidesPower(-gamepad2.right_stick_y);
+        // Slides – PID Target
+        deposit.setSlidesTargetInches(-gamepad2.right_stick_y * 10);
+
+        // === PID UPDATES ===
+        intake.update();
+        deposit.update();
 
         // === TELEMETRY ===
         telemetry.addLine("🎮 Gamepad 2 Controls");
         telemetry.addData("Height Servo", heightPos);
         telemetry.addData("Rotate Servo", rotatePos);
         telemetry.addData("Wrist Servo", wristPos);
-        telemetry.addData("Intake Slide Power", -gamepad2.left_stick_y);
-        telemetry.addData("Deposit Slide Power", -gamepad2.right_stick_y);
+        telemetry.addData("Intake Slide Target (in)", -gamepad2.left_stick_y * 10);
+        telemetry.addData("Deposit Slide Target (in)", -gamepad2.right_stick_y * 10);
 
         telemetry.addData("Intake Claw", gamepad2.x ? "Open" : (gamepad2.b ? "Close" : "Idle"));
         telemetry.addData("Deposit Claw", gamepad2.a ? "Open" : (gamepad2.y ? "Close" : "Idle"));
