@@ -4,6 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.Intake;
+import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.Deposit;
+
 
 import java.util.Arrays;
 import java.util.List;
