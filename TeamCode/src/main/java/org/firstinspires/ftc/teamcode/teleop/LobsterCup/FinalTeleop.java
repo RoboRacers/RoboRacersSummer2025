@@ -21,7 +21,8 @@ import java.util.List;
  *
  * Intake
  * dpad_up/down     → Height Servo ↑↓
- * dpad_left/right  → Rotate Servo ←→
+ * dpad_left/right  → Rotate Servo(turret) ←→
+ * left_stick_x
  * x/b              → Claw open/close
  * left_stick_y     → Intake Slide Motor
  *
@@ -118,6 +119,9 @@ public class FinalTeleop extends OpMode {
         // Claw
         if (gamepad2.x) intake.setClawOpen(true);
         else if (gamepad2.b) intake.setClawOpen(false);
+
+        // Intake Wrist
+        intake.setWristIntake(-gamepad2.left_stick_x);
 
         // Slides – PID Target
         intake.setSlidesTargetInches(-gamepad2.left_stick_y * 10);  // map joystick to 0–10in range
