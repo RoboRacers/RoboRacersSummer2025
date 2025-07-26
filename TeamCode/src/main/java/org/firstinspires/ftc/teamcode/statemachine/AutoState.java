@@ -215,7 +215,7 @@ public enum AutoState {
 
         @Override
         public void update(StateMachines sm, LinearOpMode opMode){
-            // rolling outtake code
+            sm.depositClaw.open();
         }
     },
     DEPOSIT_CLAW_CLOSE {
@@ -228,7 +228,7 @@ public enum AutoState {
 
         @Override
         public void update(StateMachines sm, LinearOpMode opMode){
-            // rolling outtake code
+            sm.depositClaw.close();
         }
     };
     public void onEnter(StateMachines sm, LinearOpMode opMode) {}
