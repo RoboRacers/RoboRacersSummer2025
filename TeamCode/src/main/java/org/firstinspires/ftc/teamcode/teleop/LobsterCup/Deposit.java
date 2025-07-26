@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop;
+package org.firstinspires.ftc.teamcode.teleop.LobsterCup;
 
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;

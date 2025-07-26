@@ -1,11 +1,9 @@
-package org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop;
+package org.firstinspires.ftc.teamcode.teleop.LobsterCup;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.Intake;
-import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.Deposit;
 
 
 import java.util.Arrays;
@@ -50,11 +48,11 @@ import java.util.List;
  * - "depositClaw"   → Servo
  * - "liftLeft"      → Servo
  * - "liftRight"     → Servo
- * - "wristServo"    → Servo
+ * - "wristServo"    → Servo(on Deposit)
  */
 
 @TeleOp(name = "LobsterCup TeleOp (For my goat Ishaan ~ Mith)", group = "Main")
-public class FinalTeleo extends OpMode {
+public class FinalTeleop extends OpMode {
 
     // Drivetrain
     private DcMotorEx leftFront, leftRear, rightFront, rightRear;
