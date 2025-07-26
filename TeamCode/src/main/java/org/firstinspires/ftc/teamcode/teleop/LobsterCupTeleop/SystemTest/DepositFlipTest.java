@@ -21,8 +21,8 @@ public class DepositFlipTest extends LinearOpMode {
     public void runOpMode() {
         // Initialize the servo from the hardware map
         // Replace "my_servo" with the name you configured for your servo in the Robot Controller app
-        myServo = hardwareMap.get(Servo.class, "rightFlip");
-        myServo1 = hardwareMap.get(Servo.class, "leftFlip");
+        myServo = hardwareMap.get(Servo.class, "liftRight");
+        myServo1 = hardwareMap.get(Servo.class, "liftLeft");
 
 
         // Set the initial position of the servo
@@ -40,9 +40,10 @@ public class DepositFlipTest extends LinearOpMode {
         while (opModeIsActive()) {
 
             // Control the servo with the D-pad UP button (increase position)
-            if(gamepad1.x)
+            if(gamepad1.x) {
                 myServo.setPosition(gamepad1.left_stick_y);
                 myServo1.setPosition(gamepad1.left_stick_y);
+            }
             // Display the current servo position on the Driver Station
             telemetry.addData("Servo Position", myServo.getPosition());
             telemetry.addData("Servo Position", myServo1.getPosition());
