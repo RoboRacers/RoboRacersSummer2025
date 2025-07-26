@@ -67,6 +67,91 @@ public enum AutoState {
         public void update(StateMachines sm, LinearOpMode opMode) {
             // Remain here
         }
+    },
+
+    VSLIDE_EXTEND{
+      @Override
+      public void onEnter(StateMachines sm, LinearOpMode opMode){
+          opMode.telemetry.addData("State", "VSLIDE_EXTEND");
+          opMode.telemetry.update();
+          sm.runtime.reset();
+      }
+
+      @Override
+      public void update(StateMachines sm, LinearOpMode opMode){
+          sm.vslides.setPower(0.1);
+      }
+    },
+
+    VSLIDE_RETRACT{
+        @Override
+        public void onEnter(StateMachines sm, LinearOpMode opMode){
+            opMode.telemetry.addData("State", "VSLIDE_RETRACT");
+            opMode.telemetry.update();
+            sm.runtime.reset();
+        }
+
+        @Override
+        public void update(StateMachines sm, LinearOpMode opMode){
+            sm.vslides.setPower(-0.1);
+        }
+    },
+
+    HSLIDE_EXTEND{
+        @Override
+        public void onEnter(StateMachines sm, LinearOpMode opMode){
+            opMode.telemetry.addData("State", "HSLIDE_EXTEND");
+            opMode.telemetry.update();
+            sm.runtime.reset();
+        }
+
+        @Override
+        public void update(StateMachines sm, LinearOpMode opMode){
+            sm.hslides.setPower(0.1);
+        }
+    },
+
+    HSLIDE_RETRACT{
+        @Override
+        public void onEnter(StateMachines sm, LinearOpMode opMode){
+            opMode.telemetry.addData("State", "HSLIDE_RETRACT");
+            opMode.telemetry.update();
+            sm.runtime.reset();
+        }
+
+        @Override
+        public void update(StateMachines sm, LinearOpMode opMode){
+            sm.hslides.setPower(-0.1);
+        }
+    },
+
+
+    CLAW_OPEN {
+        @Override
+        public void onEnter(StateMachines sm, LinearOpMode opMode){
+            opMode.telemetry.addData("State", "CLAW_OPEN");
+            opMode.telemetry.update();
+            sm.runtime.reset();
+
+        }
+        @Override
+        public void update(StateMachines sm, LinearOpMode opMode) {
+            //Claw opening code
+        }
+    },
+
+    CLAW_CLOSE{
+        @Override
+        public void onEnter(StateMachines sm, LinearOpMode opMode){
+            opMode.telemetry.addData("State", "CLAW_CLOSE");
+            opMode.telemetry.update();
+            sm.runtime.reset();
+        }
+
+        @Override
+        public void update(StateMachines sm, LinearOpMode opMode){
+            //Claw closing code
+        }
     };
 
     public void onEnter(StateMachines sm, LinearOpMode opMode) {}

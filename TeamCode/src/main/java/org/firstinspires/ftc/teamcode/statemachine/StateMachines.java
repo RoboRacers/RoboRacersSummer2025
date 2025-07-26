@@ -16,14 +16,17 @@ public class StateMachines {
         // Shared among states for easy control of motors
     public Drive drive;
 
-    public Slides slides;
+    public Slides vslides;
+    public Slides hslides;
 
+    //TODO: define armflip(flip/unflip), define turret(turn left/right), define deposit rolling intake (intake/outtake)
 
     // You inject the robot's Drive system into the FSM 
         // when creating the StateMachines object
-    public StateMachines(Drive drive, Slides slides) {
+    public StateMachines(Drive drive, Slides vslides, Slides hslides) {
         this.drive = drive;
-        this.slides = slides;
+        this.vslides = vslides;
+        this.hslides = hslides;
     }
 
         // Updates the currentState
