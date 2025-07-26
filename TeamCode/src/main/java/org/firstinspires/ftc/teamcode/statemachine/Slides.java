@@ -7,6 +7,8 @@ public class Slides {
     // These are the motor references for the left and right drive motors.
     private DcMotor slide;
 
+    public static int targetPosEncoderTicks = 0;
+
 
     // Constructor: Initializes the left and right motors with the ones passed in.
     public Slides(DcMotor slide) {
@@ -25,5 +27,11 @@ public class Slides {
     // Stops both motors by setting power to 0.
     public void stop() {
         slide.setPower(0);
+    }
+    public static int getTargetPosEncoderTicks(){
+        return targetPosEncoderTicks;
+    }
+    public DcMotor getSlide(){
+        return slide;
     }
 }
