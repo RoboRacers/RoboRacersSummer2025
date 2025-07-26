@@ -8,10 +8,12 @@ public class Intake {
     private Servo heightServo;
     private Servo rotateServo;
     private Servo clawServo;
+    private Servo wristIntake;
     private DcMotor slidesMotor;
 
     private double heightPos = 0.5;
     private double rotatePos = 0.5;
+    private double wristPos = 0.5;
 
     private double targetInches = 0;
     private double kP = 0.02, kI = 0.0000000001, kD = 0.0000000001;
@@ -19,10 +21,11 @@ public class Intake {
     private long lastTime = System.nanoTime();
 
     public void init(HardwareMap hardwareMap) {
-        heightServo = hardwareMap.get(Servo.class, "hS");
-        rotateServo = hardwareMap.get(Servo.class, "rS");
-        clawServo   = hardwareMap.get(Servo.class, "cS");
-        slidesMotor = hardwareMap.get(DcMotor.class, "slides");
+        heightServo = hardwareMap.get(Servo.class, "heightServo");
+        rotateServo = hardwareMap.get(Servo.class, "rotateServo");
+        clawServo   = hardwareMap.get(Servo.class, "clawServo");
+        wristIntake   = hardwareMap.get(Servo.class, "wristIntake");
+        slidesMotor = hardwareMap.get(DcMotor.class, "intakeSlide");
 
         heightServo.setPosition(heightPos);
         rotateServo.setPosition(rotatePos);
@@ -61,6 +64,10 @@ public class Intake {
         rotateServo.setPosition(rotatePos);
     }
 
+    public void setWristIntake(double position) {
+        wristPos = clamp(position);
+        wristIntake.setPosition(wristPos);
+    }
     public void setClawOpen(boolean open) {
         clawServo.setPosition(open ? 1.0 : 0.3);
     }

@@ -18,11 +18,11 @@ public class Deposit {
     private long lastTime = System.nanoTime();
 
     public void init(HardwareMap hardwareMap) {
-        verticalSlides = hardwareMap.get(DcMotor.class, "vSlides");
-        liftServoLeft  = hardwareMap.get(Servo.class, "liftL");
-        liftServoRight = hardwareMap.get(Servo.class, "liftR");
+        verticalSlides = hardwareMap.get(DcMotor.class, "depositSlide");
+        liftServoLeft  = hardwareMap.get(Servo.class, "flipLeft");
+        liftServoRight = hardwareMap.get(Servo.class, "flipRight");
         wristServo     = hardwareMap.get(Servo.class, "wrist");
-        clawServo      = hardwareMap.get(Servo.class, "cS"); // Shared with Intake
+        clawServo      = hardwareMap.get(Servo.class, "depositClaw"); // Shared with Intake
 
         verticalSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         verticalSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
