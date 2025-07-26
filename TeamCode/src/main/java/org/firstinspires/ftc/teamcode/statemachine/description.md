@@ -8,13 +8,21 @@ This is more for myself but it's helpful to think of an FSM as a switchboard but
 * IDLE
 This one is pretty self explanatory but it's the state that the robot is set into whenever the autonomous opmode is run.
 "This is the state the robot starts in" - Annoying Anon.
-* INTAKE
-This one begins the intake mechanism of the robot. It's not currently functional so it simply updates the telemetry
-* OUTTAKE
-Read above
 * MOVE_FORWARD
 This one drives the robot forward for as long as the state is active
 * TURN
 This one turns the robot for as long as the state is active
 * STOP
 Self-explanatory
+* VSLIDE_EXTEND
+* VSLIDE_RETRACT
+* HSLIDE_EXTEND
+* HSLIDE_RETRACT
+* CLAW_OPEN
+* CLAW_CLOSE
+* ARM_FLIP
+* ARM_UNFLIP
+* TURRET_TURN_FORWARD
+* TURRET_TURN_BACKWARD
+* ROLLING_INTAKE
+* ROLLING_OUTTAKE

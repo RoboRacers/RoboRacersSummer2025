@@ -32,26 +32,7 @@ import java.util.List;
  * left/right_bumper→ Lift Servos ↑↓
  * left/right_trigger → Wrist Servo ↓↑
  * right_stick_y    → Deposit Slide Motor
- *
- * Hardware Configuration (Driver Hub > Robot Config):
- *
- * Motors:
- * - "leftFront"     → DcMotorEx
- * - "leftRear"      → DcMotorEx
- * - "rightFront"    → DcMotorEx
- * - "rightRear"     → DcMotorEx
- * - "intakeSlide"   → DcMotorEx
- * - "depositSlide"  → DcMotorEx
- *
- * Servos:
- * - "heightServo"   → Servo
- * - "rotateServo"   → Servo
- * - "clawServo"     → Servo (on Intake)
- * - "depositClaw"   → Servo
- * - "liftLeft"      → Servo
- * - "liftRight"     → Servo
- * - "wristServo"    → Servo(on Deposit)
- */
+ * */
 
 @TeleOp(name = "LobsterCup TeleOp (For my goat Ishaan ~ Mith)", group = "Main")
 public class FinalTeleop extends OpMode {
@@ -124,7 +105,7 @@ public class FinalTeleop extends OpMode {
         else if (gamepad2.b) intake.setClawOpen(false);
 
         // Intake Wrist
-        intake.setWristIntake(-gamepad2.left_stick_x);
+        intake.setTurret(-gamepad2.left_stick_x);
 
         // Slides – PID Target
         intake.setSlidesTargetInches(-gamepad2.left_stick_y * 10);  // map joystick to 0–10in range

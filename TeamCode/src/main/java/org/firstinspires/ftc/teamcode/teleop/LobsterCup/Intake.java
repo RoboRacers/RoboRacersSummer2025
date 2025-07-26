@@ -4,11 +4,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 public class Intake {
     private Servo heightServo;
     private Servo rotateServo;
     private Servo clawServo;
-    private Servo wristIntake;
+    private Servo turret;
     private DcMotor slidesMotor;
 
     private double heightPos = 0.5;
@@ -24,7 +26,7 @@ public class Intake {
         heightServo = hardwareMap.get(Servo.class, "heightServo");
         rotateServo = hardwareMap.get(Servo.class, "rotateServo");
         clawServo   = hardwareMap.get(Servo.class, "clawServo");
-        wristIntake   = hardwareMap.get(Servo.class, "wristIntake");
+        turret = hardwareMap.get(Servo.class, "turret");
         slidesMotor = hardwareMap.get(DcMotor.class, "intakeSlide");
 
         heightServo.setPosition(heightPos);
@@ -64,9 +66,9 @@ public class Intake {
         rotateServo.setPosition(rotatePos);
     }
 
-    public void setWristIntake(double position) {
+    public void setTurret(double position) {
         wristPos = clamp(position);
-        wristIntake.setPosition(wristPos);
+        turret.setPosition(wristPos);
     }
     public void setClawOpen(boolean open) {
         clawServo.setPosition(open ? 1.0 : 0.3);
@@ -78,5 +80,13 @@ public class Intake {
 
     private double inchesToTicks(double inches) {
         return inches * 28.229;
+    }
+
+    public void telemetry(Telemetry telemetry) {
+        telemetry.addData("Horizontal Slides Power", slidesMotor.getPower());
+        telemetry.addData("Turret Pos", turret.getPosition());
+        telemetry.addData("Arm Pos", heightServo.getPosition());
+        telemetry.addData("Rotate Servo Pos", turret.getPosition());
+        telemetry.addData("Claw Pos", clawServo.getPosition());
     }
 }
