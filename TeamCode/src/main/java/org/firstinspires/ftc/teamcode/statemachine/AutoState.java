@@ -80,9 +80,7 @@ public enum AutoState {
 
       @Override
       public void update(StateMachines sm, LinearOpMode opMode){
-          sm.vslides.getSlide().setTargetPosition(sm.vslides.getTargetPosEncoderTicks());
-          sm.vslides.getSlide().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-          sm.vslides.getSlide().setPower(1);
+          sm.vslides.extend();
           opMode.telemetry.addData("Current Pos", sm.vslides.getSlide().getCurrentPosition());
           opMode.telemetry.addData("Target Pos", sm.vslides.getSlide().getTargetPosition());
           opMode.telemetry.update();
@@ -93,12 +91,15 @@ public enum AutoState {
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "VSLIDE_RETRACT");
             opMode.telemetry.update();
+            sm.vslides.getSlide().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            sm.vslides.getSlide().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            sm.vslides.getSlide().setDirection(DcMotorSimple.Direction.REVERSE);
             sm.runtime.reset();
         }
 
         @Override
         public void update(StateMachines sm, LinearOpMode opMode){
-            sm.vslides.setPower(-0.1);
+            sm.vslides.retract();
         }
     },
     HSLIDE_EXTEND {
@@ -106,12 +107,15 @@ public enum AutoState {
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "HSLIDE_EXTEND");
             opMode.telemetry.update();
+            sm.hslides.getSlide().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            sm.hslides.getSlide().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            sm.hslides.getSlide().setDirection(DcMotorSimple.Direction.REVERSE);
             sm.runtime.reset();
         }
 
         @Override
         public void update(StateMachines sm, LinearOpMode opMode){
-            sm.hslides.setPower(0.1);
+            sm.hslides.extend();
         }
     },
     HSLIDE_RETRACT {
@@ -119,12 +123,15 @@ public enum AutoState {
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "HSLIDE_RETRACT");
             opMode.telemetry.update();
+            sm.hslides.getSlide().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            sm.hslides.getSlide().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            sm.hslides.getSlide().setDirection(DcMotorSimple.Direction.REVERSE);
             sm.runtime.reset();
         }
 
         @Override
         public void update(StateMachines sm, LinearOpMode opMode){
-            sm.hslides.setPower(-0.1);
+            sm.hslides.retract();
         }
     },
     CLAW_OPEN {
