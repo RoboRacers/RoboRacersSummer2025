@@ -3,12 +3,9 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 //@Disabled
 @Config
@@ -27,7 +24,7 @@ public class SlidesPID extends LinearOpMode {
     public static double kI = 0.00;
     public static double kD = 0.0001;
     public static double kF = 0.0;
-    public static double targetAngle = 0.0; // Target angle in degrees
+    public static int targetPosEncoderTicks = 0; // Target angle in degrees
 
     private double integralSum = 0;
     private double lastError = 0;
@@ -37,13 +34,14 @@ public class SlidesPID extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        slidesMotor = hardwareMap.get(DcMotor.class, "slidesMotor");
+        slidesMotor = hardwareMap.get(DcMotor.class, "depositSlide");
 //        potentiometer = hardwareMap.get(AnalogInput.class, "pot");
 
 
         slidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slidesMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        slidesMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        slidesMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        slidesMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        slidesMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Initialize FTC Dashboard
         dashboard = FtcDashboard.getInstance();
@@ -54,45 +52,53 @@ public class SlidesPID extends LinearOpMode {
 
         while (opModeIsActive()) {
 //            double currentVoltage = potentiometer.getVoltage();
-            double currentAngle = slidesMotor.getCurrentPosition();
-
-            // Calculate error (using angles)
-            double error = targetAngle - currentAngle;
-
-            integralSum += error * timer.seconds();
-
-            double derivative = (error - lastError) / timer.seconds();
-
-//            double feedForward = kF * Math.sin(Math.toRadians(currentAngle));
-
-            motorPower = (kP * error) + (kI * integralSum) + (kD * derivative);
-
-            motorPower = Math.max(-1.0, Math.min(1.0, motorPower));
-
-            if(Math.abs(motorPower) > Math.abs(maxPower)){
-                maxPower = motorPower;
-            }
-
-            slidesMotor.setPower(motorPower);
-
-            lastError = error;
-            lastTarget = targetAngle;
-            timer.reset();
-
-            // Telemetry to dashboard
-            telemetry.addData("Target Angle", targetAngle);
-//            telemetry.addData("Current Angle", currentAngle);
-            telemetry.addData("Error", error);
-            telemetry.addData("Motor Power", motorPower);
-            telemetry.addData("kP", kP);
-            telemetry.addData("kI", kI);
-            telemetry.addData("kD", kD);
-            telemetry.addData("kF", kF);
-            telemetry.addData("Max Power Used", maxPower);
-//            telemetry.addData("Pot Voltage", potentiometer.getVoltage());
-//            telemetry.update();
-            telemetry.update();// Important: Update the dashboard
+//            double currentAngle = slidesMotor.getCurrentPosition();
+//
+//            // Calculate error (using angles)
+//            double error = targetAngle - currentAngle;
+//
+//            integralSum += error * timer.seconds();
+//
+//            double derivative = (error - lastError) / timer.seconds();
+//
+////            double feedForward = kF * Math.sin(Math.toRadians(currentAngle));
+//
+//            motorPower = (kP * error) + (kI * integralSum) + (kD * derivative);
+//
+//            motorPower = Math.max(-1.0, Math.min(1.0, motorPower));
+//
+//            if(Math.abs(motorPower) > Math.abs(maxPower)){
+//                maxPower = motorPower;
+//            }
+//
+//            slidesMotor.setPower(motorPower);
+//
+//            lastError = error;
+//            lastTarget = targetAngle;
+//            timer.reset();
+//
+//            // Telemetry to dashboard
+//            telemetry.addData("Target Angle", targetAngle);
+////            telemetry.addData("Current Angle", currentAngle);
+//            telemetry.addData("Error", error);
+//            telemetry.addData("Motor Power", motorPower);
+//            telemetry.addData("kP", kP);
+//            telemetry.addData("kI", kI);
+//            telemetry.addData("kD", kD);
+//            telemetry.addData("kF", kF);
+//            telemetry.addData("Max Power Used", maxPower);
+////            telemetry.addData("Pot Voltage", potentiometer.getVoltage());
+////            telemetry.update();
+//            telemetry.update();// Important: Update the dashboard
+//            dashboard.getTelemetry();
+            slidesMotor.setTargetPosition(targetPosEncoderTicks);
+            slidesMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            slidesMotor.setPower(1);
+            telemetry.addData("Current Pos", slidesMotor.getCurrentPosition());
+            telemetry.addData("Target Pos", targetPosEncoderTicks);
+            telemetry.update();
             dashboard.getTelemetry();
+
         }
     }
 

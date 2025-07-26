@@ -91,7 +91,7 @@ public class GimboDepositStateMachine extends OpMode {
                 break;
 
             case LIFT_ARM:
-                // intake.heightServo
+                intake.setHeightPosition(0); // find the proper value later
                 break;
 
             case ROTATE_TURRET:
@@ -106,7 +106,6 @@ public class GimboDepositStateMachine extends OpMode {
                     timer.reset();
                 }
                 break;
-
             case RETRACT_SLIDES:
                 intake.setSlidesTargetInches(0);  // PID will pull slides home
                 timer.reset();
