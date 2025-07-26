@@ -34,7 +34,7 @@ public class Deposit {
     }
 
     public void update() {
-        double ticks = inchesToTicks(targetInches);
+        double ticks = targetInches;
         double current = verticalSlides.getCurrentPosition();
         double error = ticks - current;
         double dt = (System.nanoTime() - lastTime) / 1e9;
