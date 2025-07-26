@@ -30,34 +30,40 @@ public class PedroPathingAuton extends OpMode {
     private final Pose blueScoreSpecimenPose1 = centerCoordsPose(36, 80, 0);
     private final Pose blueScoreSpecimenPose2 = centerCoordsPose(36, 64, 0);
     private final Pose blueGrabSamplePose1 = centerCoordsPose(72, 100, 4.71239); // go to submersible to pick up sample
-    private final Pose blueGrabSamplePose2 = centerCoordsPose(72, 44, 4.71239); // go to submersible to pick up sample
+    private final Pose blueGrabSamplePose2 = centerCoordsPose(72, 44, 1.5708); // go to submersible to pick up sample
     private final Pose blueBasketPose = centerCoordsPose(18, 126, 2.0944); // go to basket
     private final Pose blueObservPose = centerCoordsPose(24, 20, 3.14159); // go to observation zone to drop sample/pick up specimen
 
     // all red poses
-    private final Pose redStartPose2 = centerCoordsPose(136, 64, 3.14159); // Facing left (pi radians)
-    private final Pose redBasket = centerCoordsPose(126, 18, 4.71239); // go to basket
-    private final Pose redSubmers = centerCoordsPose(72, 44, 2.0944);
-    private final Pose redObservPose = centerCoordsPose(120, 124, 4.71239);
+    private final Pose redStartPose1 = centerCoordsPose(136, 64, 3.14159); // Facing left (pi radians)
+    private final Pose redStartPose2 = centerCoordsPose(136, 80, 3.14159);// Facing left (pi radians)
+    private final Pose redScoreSpecimenPose1 = centerCoordsPose(108, 64, 3.14159);
+    private final Pose redScoreSpecimenPose2 = centerCoordsPose(108, 80, 3.14159);
+    private final Pose redGrabSamplePose1 = centerCoordsPose(108, 44, 1.5708); // go to submersible to pick up sample
+    private final Pose redGrabSamplePose2 = centerCoordsPose(72, 100, 4.71239);
+    private final Pose redBasketPose = centerCoordsPose(126, 18, 5.49779); // go to basket
+    private final Pose redObservPose = centerCoordsPose(120, 124, 0);
 
 
     private Path blueScoreSpecimen1, blueGrabSampleTop1, blueGrabSampleTop2, blueGrabSampleTop, blueBasketToSubmers, blueSubmersToBasket;
     private Path blueScoreSpecimen2, blueGrabSampleBottom1, blueGrabSampleBottom2, blueGrabSampleBottom, blueSubmersToObserv, blueObservToSubmers, blueScoreSpecimen;
+    private Path redScoreSpecimen1, redGrabSampleBottom1, redGrabSampleBottom2, redGrabSampleBottom, redBasketToSubmers, redSubmersToBasket;
+    private Path redScoreSpecimen2, redGrabSampleTop1, redGrabSampleTop2, redGrabSampleTop, redSubmersToObserv, redObservToSubmers, redScoreSpecimen;
 
     public void buildPaths() {
-        // all blue 1 paths
+        // all blue 1 paths (closer to basket)
         // score specimen
         blueScoreSpecimen1 = new Path(new BezierLine(blueStartPose1, blueScoreSpecimenPose1));
         blueScoreSpecimen1.setLinearHeadingInterpolation(blueStartPose1.getHeading(), blueScoreSpecimenPose1.getHeading());
         // go up (part 1 of getting sample)
-        blueGrabSampleTop1 = new Path(new BezierLine(blueScoreSpecimenPose1, centerCoordsPose(36,110,0)));
-        blueGrabSampleTop1.setLinearHeadingInterpolation(blueScoreSpecimenPose1.getHeading(), centerCoordsPose(36,110,0).getHeading());
+        blueGrabSampleTop1 = new Path(new BezierLine(blueScoreSpecimenPose1, centerCoordsPose(36, 110, 0)));
+        blueGrabSampleTop1.setLinearHeadingInterpolation(blueScoreSpecimenPose1.getHeading(), centerCoordsPose(36, 110, 0).getHeading());
         // go right (part 2 of getting sample)
-        blueGrabSampleTop2 = new Path(new BezierLine(centerCoordsPose(36,110,0), centerCoordsPose(72,110,0)));
-        blueGrabSampleTop2.setLinearHeadingInterpolation(centerCoordsPose(36,110,0).getHeading(), centerCoordsPose(72,110,0).getHeading());
+        blueGrabSampleTop2 = new Path(new BezierLine(centerCoordsPose(36, 110, 0), centerCoordsPose(72, 110, 0)));
+        blueGrabSampleTop2.setLinearHeadingInterpolation(centerCoordsPose(36, 110, 0).getHeading(), centerCoordsPose(72, 110, 0).getHeading());
         // go down towards submersible (part 3 of getting sample)
-        blueGrabSampleTop = new Path(new BezierLine(centerCoordsPose(72,110,0), blueGrabSamplePose1));
-        blueGrabSampleTop.setLinearHeadingInterpolation(centerCoordsPose(72,110,0).getHeading(), blueGrabSamplePose1.getHeading());
+        blueGrabSampleTop = new Path(new BezierLine(centerCoordsPose(72, 110, 0), blueGrabSamplePose1));
+        blueGrabSampleTop.setLinearHeadingInterpolation(centerCoordsPose(72, 110, 0).getHeading(), blueGrabSamplePose1.getHeading());
         // score sample
         blueSubmersToBasket = new Path(new BezierLine(blueGrabSamplePose1, blueBasketPose));
         blueSubmersToBasket.setLinearHeadingInterpolation(blueGrabSamplePose1.getHeading(), blueBasketPose.getHeading());
@@ -65,19 +71,19 @@ public class PedroPathingAuton extends OpMode {
         blueBasketToSubmers = new Path(new BezierLine(blueBasketPose, blueGrabSamplePose1));
         blueBasketToSubmers.setLinearHeadingInterpolation(blueBasketPose.getHeading(), blueGrabSamplePose1.getHeading());
 
-        // all blue 2 paths
+        // all blue 2 paths (further from basket)
         // score specimen
         blueScoreSpecimen2 = new Path(new BezierLine(blueStartPose2, blueScoreSpecimenPose2));
         blueScoreSpecimen2.setLinearHeadingInterpolation(blueStartPose2.getHeading(), blueScoreSpecimenPose2.getHeading());
         // go down (part 1 of getting sample)
-        blueGrabSampleBottom1 = new Path(new BezierLine(blueScoreSpecimenPose2, centerCoordsPose(36,34,0)));
-        blueGrabSampleBottom1.setLinearHeadingInterpolation(blueScoreSpecimenPose2.getHeading(), centerCoordsPose(36,34,0).getHeading());
+        blueGrabSampleBottom1 = new Path(new BezierLine(blueScoreSpecimenPose2, centerCoordsPose(36, 34, 0)));
+        blueGrabSampleBottom1.setLinearHeadingInterpolation(blueScoreSpecimenPose2.getHeading(), centerCoordsPose(36, 34, 0).getHeading());
         // go right (part 2 of getting sample)
-        blueGrabSampleBottom2 = new Path(new BezierLine(centerCoordsPose(36,34,0), centerCoordsPose(72,34,0)));
-        blueGrabSampleBottom2.setLinearHeadingInterpolation(centerCoordsPose(36,34,0).getHeading(), centerCoordsPose(72,34,0).getHeading());
+        blueGrabSampleBottom2 = new Path(new BezierLine(centerCoordsPose(36, 34, 0), centerCoordsPose(72, 34, 0)));
+        blueGrabSampleBottom2.setLinearHeadingInterpolation(centerCoordsPose(36, 34, 0).getHeading(), centerCoordsPose(72, 34, 0).getHeading());
         // go up towards submersible (part 3 of getting sample)
-        blueGrabSampleBottom = new Path(new BezierLine(centerCoordsPose(72,34,0), blueGrabSamplePose2));
-        blueGrabSampleBottom.setLinearHeadingInterpolation(centerCoordsPose(72,34,0).getHeading(), blueGrabSamplePose2.getHeading());
+        blueGrabSampleBottom = new Path(new BezierLine(centerCoordsPose(72, 34, 0), blueGrabSamplePose2));
+        blueGrabSampleBottom.setLinearHeadingInterpolation(centerCoordsPose(72, 34, 0).getHeading(), blueGrabSamplePose2.getHeading());
         // drop sample in observation zone
         blueSubmersToObserv = new Path(new BezierLine(blueGrabSamplePose2, blueObservPose));
         blueSubmersToObserv.setLinearHeadingInterpolation(blueGrabSamplePose2.getHeading(), blueObservPose.getHeading());
@@ -85,40 +91,47 @@ public class PedroPathingAuton extends OpMode {
         blueScoreSpecimen = new Path(new BezierLine(blueObservPose, blueScoreSpecimenPose2));
         blueScoreSpecimen.setLinearHeadingInterpolation(blueObservPose.getHeading(), blueScoreSpecimenPose2.getHeading());
 
+        // all red 1 paths (closer to basket)
+        // score specimen
+        redScoreSpecimen1 = new Path(new BezierLine(redStartPose1, redScoreSpecimenPose1));
+        redScoreSpecimen1.setLinearHeadingInterpolation(redStartPose1.getHeading(), redScoreSpecimenPose1.getHeading());
+        // go up (part 1 of getting sample)
+        redGrabSampleBottom1 = new Path(new BezierLine(redScoreSpecimenPose1, centerCoordsPose(108, 34, 0)));
+        redGrabSampleBottom1.setLinearHeadingInterpolation(redScoreSpecimenPose1.getHeading(), centerCoordsPose(108, 34, 0).getHeading());
+        // go right (part 2 of getting sample)
+        redGrabSampleBottom2 = new Path(new BezierLine(centerCoordsPose(108, 34, 0), centerCoordsPose(72, 34, 0)));
+        redGrabSampleBottom2.setLinearHeadingInterpolation(centerCoordsPose(108, 34, 0).getHeading(), centerCoordsPose(72, 34, 0).getHeading());
+        // go down towards submersible (part 3 of getting sample)
+        redGrabSampleBottom = new Path(new BezierLine(centerCoordsPose(72, 34, 0), redGrabSamplePose1));
+        redGrabSampleBottom.setLinearHeadingInterpolation(centerCoordsPose(72, 34, 0).getHeading(), redGrabSamplePose1.getHeading());
+        // score sample
+        redSubmersToBasket = new Path(new BezierLine(redGrabSamplePose1, redBasketPose));
+        redSubmersToBasket.setLinearHeadingInterpolation(redGrabSamplePose1.getHeading(), redBasketPose.getHeading());
+        // get sample
+        redBasketToSubmers = new Path(new BezierLine(redBasketPose, redGrabSamplePose1));
+        redBasketToSubmers.setLinearHeadingInterpolation(redBasketPose.getHeading(), redGrabSamplePose1.getHeading());
+
+        // all red 2 paths (further from basket)
+        // score specimen
+        redScoreSpecimen2 = new Path(new BezierLine(redStartPose2, redScoreSpecimenPose2));
+        redScoreSpecimen2.setLinearHeadingInterpolation(redStartPose2.getHeading(), redScoreSpecimenPose2.getHeading());
+        // go down (part 1 of getting sample)
+        redGrabSampleTop1 = new Path(new BezierLine(redScoreSpecimenPose2, centerCoordsPose(108, 110, 0)));
+        redGrabSampleTop1.setLinearHeadingInterpolation(redScoreSpecimenPose2.getHeading(), centerCoordsPose(108, 110, 0).getHeading());
+        // go right (part 2 of getting sample)
+        redGrabSampleTop2 = new Path(new BezierLine(centerCoordsPose(108, 110, 0), centerCoordsPose(72, 110, 0)));
+        redGrabSampleTop2.setLinearHeadingInterpolation(centerCoordsPose(108, 110, 0).getHeading(), centerCoordsPose(72, 110, 0).getHeading());
+        // go up towards submersible (part 3 of getting sample)
+        redGrabSampleTop = new Path(new BezierLine(centerCoordsPose(72, 110, 0), redGrabSamplePose2));
+        redGrabSampleTop.setLinearHeadingInterpolation(centerCoordsPose(72, 110, 0).getHeading(), redGrabSamplePose2.getHeading());
+        // drop sample in observation zone
+        redSubmersToObserv = new Path(new BezierLine(redGrabSamplePose2, redObservPose));
+        redSubmersToObserv.setLinearHeadingInterpolation(redGrabSamplePose2.getHeading(), redObservPose.getHeading());
+        // take specimen from observation and score
+        redScoreSpecimen = new Path(new BezierLine(redObservPose, redScoreSpecimenPose2));
+        redScoreSpecimen.setLinearHeadingInterpolation(redObservPose.getHeading(), redScoreSpecimenPose2.getHeading());
 
 
-        /**
-        // all blue 2 paths
-        blue2ForwardPath = new Path(new BezierLine(blueStartPose2, centerCoordsPose(18, 64, 0)));
-        blue2ForwardPath.setLinearHeadingInterpolation(blueStartPose2.getHeading(), centerCoordsPose(18, 64, 0).getHeading());
-        blue2BasketPath = new Path(new BezierLine(centerCoordsPose(18, 64, 0), goBlueBasket));
-        blue2BasketPath.setLinearHeadingInterpolation(centerCoordsPose(18, 64, 0).getHeading(), goBlueBasket.getHeading());
-
-
-        // all red 1 paths
-
-        blue1ForwardPath = new Path(new BezierLine(blueStartPose1, centerCoordsPose(18, 80, 0)));
-        blue1ForwardPath.setLinearHeadingInterpolation(blueStartPose1.getHeading(), centerCoordsPose(18, 80, 0).getHeading());
-        blue1BasketPath = new Path(new BezierLine(centerCoordsPose(18, 80, 0), goBlueBasket));
-        blue1BasketPath.setLinearHeadingInterpolation(centerCoordsPose(18, 80, 0).getHeading(), goBlueBasket.getHeading());
-
-
-        // all red 2 paths (closer to basket)
-        red2ForwardPath = new Path(new BezierLine(blueStartPose2, centerCoordsPose(18, 64, 0)));
-        red2ForwardPath.setLinearHeadingInterpolation(blueStartPose2.getHeading(), centerCoordsPose(18, 64, 0).getHeading());
-        red2BasketPath = new Path(new BezierLine(centerCoordsPose(18, 64, 0), goBlueBasket));
-        red2BasketPath.setLinearHeadingInterpolation(centerCoordsPose(18, 64, 0).getHeading(), goBlueBasket.getHeading());
-
-        blueBasketToSubmers = new Path(new BezierLine(goBlueBasket, goBlueSubmers));
-        blueBasketToSubmers.setLinearHeadingInterpolation(goBlueBasket.getHeading(), goBlueSubmers.getHeading());
-        blueSubmersToBasket = new Path(new BezierLine(goBlueSubmers, goBlueBasket));
-        blueSubmersToBasket.setLinearHeadingInterpolation(goBlueSubmers.getHeading(), goBlueBasket.getHeading());
-
-
-
-        backwardPath = new Path(new BezierLine(new Pose(), new Pose()));
-        backwardPath.setLinearHeadingInterpolation(forwardPose.getHeading(), startPose.getHeading());
-         **/
     }
 
 
@@ -126,7 +139,7 @@ public class PedroPathingAuton extends OpMode {
         switch (pathState) {
             case 0:
                 // blue position 1 (closer to basket)
-                follower.followPath(blueScoreSpecimen);
+                follower.followPath(blueScoreSpecimen1);
                 follower.followPath(blueGrabSampleTop1);
                 follower.followPath(blueGrabSampleTop2);
                 follower.followPath(blueGrabSampleTop);
@@ -154,7 +167,7 @@ public class PedroPathingAuton extends OpMode {
                 break;
             case 1:
                 // blue position 1 (closer to basket)
-                follower.followPath(blueScoreSpecimen);
+                follower.followPath(blueScoreSpecimen2);
                 follower.followPath(blueGrabSampleBottom1);
                 follower.followPath(blueGrabSampleBottom2);
                 follower.followPath(blueGrabSampleBottom);
@@ -194,19 +207,31 @@ public class PedroPathingAuton extends OpMode {
                  **/
                 break;
             case 2:
-                /**
-                // red position 2 (closer to basket)
-                follower.followPath(blue2ForwardPath);
-                follower.followPath(blue2BasketPath);
-                // rotate to 120 degrees to face basket
+
+                // red position 1 (closer to basket)
+                follower.followPath(redScoreSpecimen1);
+                follower.followPath(redGrabSampleBottom1);
+                follower.followPath(redGrabSampleBottom2);
+                follower.followPath(redGrabSampleBottom);
+                // extend slides
+                // align and pick up sample
+                follower.followPath(redSubmersToBasket);
                 // score sample in basket
-                follower.followPath(blueBasketToSubmers);
-                // rotate to 270 degrees to face submersible
-                // pick up sample from submersible
-                follower.followPath(blueSubmersToBasket);
-                // rotate to 120 degrees to face basket
+                follower.followPath(redBasketToSubmers);
+                // extend slides
+                // align and pick up sample
+                follower.followPath(redSubmersToBasket);
                 // score sample in basket
-                // repeat for as long as auton runs
+                follower.followPath(redBasketToSubmers);
+                // extend slides
+                // align and pick up sample
+                follower.followPath(redSubmersToBasket);
+                // score sample in basket
+                follower.followPath(redBasketToSubmers);
+                // extend slides
+                // align and pick up sample
+                follower.followPath(redSubmersToBasket);
+                // score sample in basket
 
                 /**
                 if (!follower.isBusy()) {
@@ -214,6 +239,39 @@ public class PedroPathingAuton extends OpMode {
                 }
                 break;
                  **/
+            case 3:
+                // blue position 1 (closer to basket)
+                follower.followPath(redScoreSpecimen2);
+                follower.followPath(redGrabSampleBottom1);
+                follower.followPath(redGrabSampleBottom2);
+                follower.followPath(redGrabSampleBottom);
+                // extend slides
+                // align and pick up sample
+                follower.followPath(redSubmersToObserv);
+                // drop sample in observation zone
+                // wait for human player 5 seconds then pick up specimen
+                follower.followPath(redScoreSpecimen);
+                // score specimen on bar
+                follower.followPath(redGrabSampleBottom1);
+                follower.followPath(redGrabSampleBottom2);
+                follower.followPath(redGrabSampleBottom);
+                // extend slides
+                // align and pick up sample
+                follower.followPath(redSubmersToObserv);
+                // drop sample in observation zone
+                // wait for human player 5 seconds then pick up specimen
+                follower.followPath(redScoreSpecimen);
+                // score specimen on bar
+                follower.followPath(redGrabSampleBottom1);
+                follower.followPath(redGrabSampleBottom2);
+                follower.followPath(redGrabSampleBottom);
+                // extend slides
+                // align and pick up sample
+                follower.followPath(redSubmersToObserv);
+                // drop sample in observation zone
+                // wait for human player 5 seconds then pick up specimen
+                follower.followPath(redScoreSpecimen);
+                // score specimen on bar
         }
     }
 
