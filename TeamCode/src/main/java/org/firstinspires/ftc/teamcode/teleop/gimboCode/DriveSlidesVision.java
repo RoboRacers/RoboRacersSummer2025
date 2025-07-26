@@ -22,7 +22,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 @TeleOp(name = "GimboDriveSlides", group = "Combined")
-public class DriveSlidesVIsion extends OpMode {
+public class DriveSlidesVision extends OpMode {
 
     private Follower follower;
     private DcMotor slidesMotor;

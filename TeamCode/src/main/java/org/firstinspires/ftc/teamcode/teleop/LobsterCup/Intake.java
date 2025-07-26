@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 public class Intake {
     private Servo heightServo;
     private Servo rotateServo;
@@ -78,5 +80,13 @@ public class Intake {
 
     private double inchesToTicks(double inches) {
         return inches * 28.229;
+    }
+
+    public void telemetry(Telemetry telemetry) {
+        telemetry.addData("Horizontal Slides Power", slidesMotor.getPower());
+        telemetry.addData("Turret Pos", turret.getPosition());
+        telemetry.addData("Arm Pos", heightServo.getPosition());
+        telemetry.addData("Rotate Servo Pos", turret.getPosition());
+        telemetry.addData("Claw Pos", clawServo.getPosition());
     }
 }
