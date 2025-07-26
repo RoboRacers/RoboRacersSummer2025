@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 //import org.firstinspires.ftc.robotcore.external.StateMachine;
 //import org.firstinspires.ftc.robotcore.external.StateMachine;
@@ -26,13 +27,21 @@ public class AutonomousOpMode extends LinearOpMode {
         DcMotor vslideMotor = hardwareMap.get(DcMotor.class, "slide");
         DcMotor hslideMotor = hardwareMap.get(DcMotor.class, "slide");
 
+        Servo clawServo = hardwareMap.get(Servo.class, "claw");
+        Servo armServo = hardwareMap.get(Servo.class, "arm");
+        Servo turretServo = hardwareMap.get(Servo.class, "turret");
+
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
         Drive drive = new Drive(leftFront, rightFront, leftBack, rightBack);
         Slides vslide = new Slides(vslideMotor);
         Slides hslide = new Slides(hslideMotor);
-        StateMachines fsm = new StateMachines(drive, vslide, hslide);
+        Claw claw = new Claw(clawServo);
+        Arm arm = new Arm(armServo);
+        Turret turret = new Turret(turretServo);
+
+        StateMachines fsm = new StateMachines(drive, vslide, hslide, claw, arm, turret);
 
         waitForStart();
 
