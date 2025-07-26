@@ -69,7 +69,7 @@ public enum AutoState {
         }
     },
 
-    VSLIDE_EXTEND{
+    VSLIDE_EXTEND {
       @Override
       public void onEnter(StateMachines sm, LinearOpMode opMode){
           opMode.telemetry.addData("State", "VSLIDE_EXTEND");
@@ -83,7 +83,7 @@ public enum AutoState {
       }
     },
 
-    VSLIDE_RETRACT{
+    VSLIDE_RETRACT {
         @Override
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "VSLIDE_RETRACT");
@@ -97,7 +97,7 @@ public enum AutoState {
         }
     },
 
-    HSLIDE_EXTEND{
+    HSLIDE_EXTEND {
         @Override
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "HSLIDE_EXTEND");
@@ -111,7 +111,7 @@ public enum AutoState {
         }
     },
 
-    HSLIDE_RETRACT{
+    HSLIDE_RETRACT {
         @Override
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "HSLIDE_RETRACT");
@@ -136,11 +136,11 @@ public enum AutoState {
         }
         @Override
         public void update(StateMachines sm, LinearOpMode opMode) {
-            //Claw opening code
+            // claw opening code
         }
     },
 
-    CLAW_CLOSE{
+    CLAW_CLOSE {
         @Override
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "CLAW_CLOSE");
@@ -150,9 +150,52 @@ public enum AutoState {
 
         @Override
         public void update(StateMachines sm, LinearOpMode opMode){
-            //Claw closing code
+            // claw closing code
+        }
+    },
+
+    ARM_FLIP {
+        @Override
+        public void onEnter(StateMachines sm, LinearOpMode opMode){
+            opMode.telemetry.addData("State", "ARM_FLIP");
+            opMode.telemetry.update();
+            sm.runtime.reset();
+        }
+
+        @Override
+        public void update(StateMachines sm, LinearOpMode opMode){
+            // arm motor code
+        }
+    },
+
+    TURRET_TURN {
+        @Override
+        public void onEnter(StateMachines sm, LinearOpMode opMode){
+            opMode.telemetry.addData("State", "TURRET_TURN");
+            opMode.telemetry.update();
+            sm.runtime.reset();
+        }
+
+        @Override
+        public void update(StateMachines sm, LinearOpMode opMode) {
+            // turret turn code
+        }
+    },
+
+    ROLLING_DEPOSIT {
+        @Override
+        public void onEnter(StateMachines sm, LinearOpMode opMode){
+            opMode.telemetry.addData("State", "ROLLING_DEPOSIT");
+            opMode.telemetry.update();
+            sm.runtime.reset();
+        }
+
+        @Override
+        public void update(StateMachines sm, LinearOpMode opMode){
+            // rolling outtake code
         }
     };
+
 
     public void onEnter(StateMachines sm, LinearOpMode opMode) {}
     public abstract void update(StateMachines sm, LinearOpMode opMode);
