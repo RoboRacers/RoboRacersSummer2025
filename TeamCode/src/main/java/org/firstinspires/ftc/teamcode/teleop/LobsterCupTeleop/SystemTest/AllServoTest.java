@@ -47,37 +47,73 @@ public class AllServoTest extends LinearOpMode {
             if(gamepad1.a){
                 deposit.moveLift(gamepad1.left_stick_y);
             }
+            // 0.24 for scoring high basket and low basket
+             //0.1489 for specimen
+            //0.95 for transfer
+
             if (gamepad1.x){
                 deposit.moveWrist(gamepad1.left_stick_y);
             }
+            //0.8578 for speciemn high basket and low basket
+             //0.1 for transfer
+            //0.57 for get out of transfer
+
             if (gamepad1.y){
-                deposit.setClawOpen(gamepad1.right_bumper);
+                deposit.clawServo.setPosition(gamepad1.left_stick_y);
             }
+            // 0.1 is open
+             // 0.34 is close
+
             if (gamepad1.b){
-                deposit.setSlidesTargetInches(gamepad1.left_stick_y * 2700);
+                deposit.setSlidesTargetInches(gamepad1.left_stick_y * 2750);
             }
+            // 1347 for specimen
+             // 2742 looks like max for high basket
+            //1666 low basket
+            // 120 for transfer
+
+
 
             if (gamepad1.dpad_down){
-                intake.setWristIntake(gamepad1.left_stick_y);
+                intake.setTurret(gamepad1.left_stick_y);
             }
+            // 0.92 for transfer
+             //0.6 is 0 degrees in the 0 -180 degree conversion for pickup
+            // 0 is 150 degrees in the 0-150 degree conversion for pickup
+            //0.23 is 90 degrees for pickup
+
+
             if(gamepad1.dpad_up){
                 intake.setHeightPosition(gamepad1.left_stick_y);
             }
+            // Pickup is 0.2822
+             //  Go into submersible 0.3572
+             // Up for transfer  is 0.58
+
             if (gamepad1.dpad_left){
                 intake.setRotatePosition(gamepad1.left_stick_y);
             }
+            // 0 is pickup for blocsk like this --- closes to pick up
+             //
+
             if (gamepad1.dpad_right){
-                intake.setClawOpen(gamepad1.left_bumper);
+                intake.clawServo.setPosition(gamepad1.left_stick_y);
             }
+            // 1 is open
+             // 0.9 is closed (could to 0.895)
+
             if (gamepad1.right_trigger > 0.8){
-                intake.setSlidesTargetInches(0);
+                intake.setSlidesTargetInches(gamepad1.left_stick_y*-520);
             }
+            // -260 for transfer
+             //
+
 
             // Display the current servo position on the Driver Station
-          deposit.update();
+            deposit.update();
             deposit.telemetry(telemetry);
             intake.update();
-
+            intake.telemetry(telemetry);
 
             telemetry.update();
         }

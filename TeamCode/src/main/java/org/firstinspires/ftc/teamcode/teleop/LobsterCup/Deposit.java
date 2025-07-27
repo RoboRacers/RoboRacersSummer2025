@@ -10,7 +10,7 @@ public class Deposit {
     private Servo liftServoLeft;
     private Servo liftServoRight;
     private Servo wristServo;
-    private Servo clawServo;
+    public Servo clawServo;
 
     private double targetInches = 0;
     private double kP = 0.02, kI = 0.0000000001, kD = 0.0000000001;
@@ -71,9 +71,23 @@ public class Deposit {
 
     public void telemetry(Telemetry telemetry) {
         telemetry.addData("Vertical Slides Power", verticalSlides.getPower());
+        telemetry.addData("Vertical Slides Pos", verticalSlides.getCurrentPosition());
         telemetry.addData("Lift Pos L", liftServoLeft.getPosition());
         telemetry.addData("Lift Pos R", liftServoRight.getPosition());
         telemetry.addData("Wrist Pos", wristServo.getPosition());
         telemetry.addData("Claw Pos", clawServo.getPosition());
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

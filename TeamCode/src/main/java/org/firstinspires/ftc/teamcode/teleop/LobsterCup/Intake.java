@@ -9,7 +9,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class Intake {
     private Servo heightServo;
     private Servo rotateServo;
-    private Servo clawServo;
+    public Servo clawServo;
     private Servo turret;
     private DcMotor slidesMotor;
 
@@ -61,6 +61,7 @@ public class Intake {
         heightServo.setPosition(heightPos);
     }
 
+
     public void setRotatePosition(double position) {
         rotatePos = clamp(position);
         rotateServo.setPosition(rotatePos);
@@ -84,9 +85,11 @@ public class Intake {
 
     public void telemetry(Telemetry telemetry) {
         telemetry.addData("Horizontal Slides Power", slidesMotor.getPower());
+        telemetry.addData("Horizontal Slides pos", slidesMotor.getCurrentPosition());
+
         telemetry.addData("Turret Pos", turret.getPosition());
         telemetry.addData("Arm Pos", heightServo.getPosition());
-        telemetry.addData("Rotate Servo Pos", turret.getPosition());
+        telemetry.addData("Rotate Servo Pos", rotateServo.getPosition());
         telemetry.addData("Claw Pos", clawServo.getPosition());
     }
 }
