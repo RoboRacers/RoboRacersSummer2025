@@ -8,7 +8,7 @@ import org.openftc.easyopencv.*;
 import org.firstinspires.ftc.teamcode.teleop.CombinedHSVandAnglePipeline;
 import org.firstinspires.ftc.teamcode.teleop.PixelToDistanceMapper;
 
-@TeleOp(name = "Snapshot Vision OpMode", group = "Vision")
+@TeleOp(name = "AutoPickTest Vision OpMode", group = "Vision")
 public class AutoPickUpOnly extends LinearOpMode {
     OpenCvCamera camera;
     CombinedHSVandAnglePipeline pipeline;

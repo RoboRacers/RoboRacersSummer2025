@@ -28,7 +28,7 @@ public class IntakeWithVision {
     public Servo clawServo;
     public DcMotor intakeSlide;
     private double heightPos = 0.5, rotatePos = 0.5, wristPos = 0.5;
-    private double targetInches = 0;
+    private int targetInches = 0;
     private double kP = 0.02, kI = 0.0000000001, kD = 0.0000000001;
     private double integralSum = 0, lastError = 0;
     private long lastTime = System.nanoTime();
@@ -61,9 +61,8 @@ public class IntakeWithVision {
     private double retractStartTime = 0;
 
 
-    public void init(HardwareMap hardwareMap, Telemetry telemetry) {
+    public void init(HardwareMap hardwareMap) {
         // Hardware
-        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
         heightServo = hardwareMap.get(Servo.class, "heightServo");
         rotateServo = hardwareMap.get(Servo.class, "rotateServo");
         clawServo = hardwareMap.get(Servo.class, "clawServo");
@@ -81,94 +80,18 @@ public class IntakeWithVision {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
 
-        int cameraMonitorViewId = hardwareMap.appContext.getResources()
-                .getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance()
-                .createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        pipeline = new CombinedHSVandAnglePipeline();
-        camera.setPipeline(pipeline);
-        Telemetry finalTelemetry = telemetry;
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-            @Override
-            public void onOpened() {
-                camera.startStreaming(1920, 1200, OpenCvCameraRotation.UPRIGHT);
-            }
 
-            @Override
-            public void onError(int errorCode) {
-                finalTelemetry.addData("Camera Error", errorCode);
-                finalTelemetry.update();
-            }
-        });
 
-        double[][] calibrationData = new double[][]{
-                {1140, 401, 13.0, 3.5, 10.0},
-                {487, 466, 14.5, -9.8, 7.8},
-                {745, 295, 16.2, -5.9, 13.9},
-                {1178, 956, 8.5, 2, 1.5}
-        };
-        mapper = new PixelToDistanceMapper(calibrationData);
 
-        dashboard = FtcDashboard.getInstance();
 
-        pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.BLUE);
+//        pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.BLUE);
         timer.reset();
     }
 
 
 
     public void runVisionLogic(boolean detectPressed) {
-        switch (visionState) {
-            case IDLE:
-                if (detectPressed) {
 
-
-                    setSlidesTargetInches(0);
-                    visionState = VisionState.RETRACTING;
-                    retractStartTime = timer.seconds();
-                }
-                break;
-            case RETRACTING:
-                if (Math.abs(intakeSlide.getCurrentPosition()) < 150) {
-                    intakeSlide.setPower(0);
-                    visionState = VisionState.SNAPSHOT_PENDING;
-                    pipeline.triggerSnapshot();
-                }
-                break;
-            case SNAPSHOT_PENDING:
-                if (pipeline.hasProcessedSnapshot()) {
-                    if (pipeline.getCenter() != null) {
-                        PixelToDistanceMapper.DistanceResult result = mapper.getDistanceFromPixel(
-                                pipeline.getCenter().x, pipeline.getCenter().y
-                        );
-                        centerXpos = pipeline.getCenter().x;
-                        centerYpos = pipeline.getCenter().y;
-                        varForwardDistance = result.forwardDist;
-                        capturedPose = follower.getPose();
-                        double headingAtCapture = capturedPose.getHeading();
-                        double offsetX = varForwardDistance * Math.cos(headingAtCapture);
-                        double offsetY = varForwardDistance * Math.sin(headingAtCapture);
-                        double targetX = capturedPose.getX() + offsetX;
-                        double targetY = capturedPose.getY() + offsetY;
-                        double robotX = follower.getPose().getX();
-                        double robotY = follower.getPose().getY();
-                        double robotHeading = follower.getPose().getHeading();
-                        double dx = targetX - robotX;
-                        double dy = targetY - robotY;
-                        double forwardComponent = dx * Math.cos(robotHeading) + dy * Math.sin(robotHeading);
-                        setSlidesTargetInches(Math.max(0, Math.min(18.5, inchesToTicks(forwardComponent-5)  + manual))); //need to consider turrt position
-                        try {
-                            sleep(100);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    } else {
-                        setSlidesTargetInches(0);
-                    }
-                    visionState = VisionState.IDLE;
-                }
-                break;
-        }
     }
 
 
@@ -218,8 +141,13 @@ public class IntakeWithVision {
 
     public void setSlidesTargetInches(double inches) {
 
-        targetInches = inches;
-        intakeSlide.setTargetPosition((int)targetInches );
+        intakeSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intakeSlide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        intakeSlide.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        targetInches = (int)inches;
+        intakeSlide.setTargetPosition(targetInches);
 
         intakeSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         intakeSlide.setPower(1);
@@ -251,7 +179,7 @@ public class IntakeWithVision {
         return Math.max(0.0, Math.min(1.0, value));
     }
 
-    private double inchesToTicks(double inches) {
+    public double inchesToTicks(double inches) {
         return inches * -28.51;
     }
 

@@ -24,7 +24,7 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
-@TeleOp(name = "GimboDriveSlides", group = "Combined")
+@TeleOp(name = "LobsterTeleop", group = "Combined")
 public class LobsterTeleop extends OpMode {
 
     private Follower follower;
@@ -60,13 +60,46 @@ public class LobsterTeleop extends OpMode {
     private boolean lastLeftBumper = false;
     public DigitalChannel topLimitSwitch;
 
+    DcMotor intakeSlide;
+
+    enum VisionState {
+        IDLE, RETRACTING, SNAPSHOT_PENDING
+    }
+
+
+    private VisionState visionState = VisionState.IDLE;
+
+    private double centerXpos = 0, centerYpos = 0, varForwardDistance = 0;
+
+
+
+    double[][] calibrationData = new double[][]{
+            {600, 775, 6,  -13, 11},
+            {1254,  788, 7, -1.2,  12},
+            {1695,  752, 7, 9.6, 20},
+            {740, 478, 14, -11.75, 15},
+            {905, 509, 12.5, -9, 14},
+            {1110, 523, 13, -3, 15},
+            {1278, 531, 12.5, 2.2, 20},
+            {1486, 522, 14, 10, 25},
+            {800, 348, 22, 9.25, 24},
+            {1064, 347, 23.5, -1, 24},
+            {1307, 394, 22, 8.5, 30}
+    };
+    PixelToDistanceMapper mapper = new PixelToDistanceMapper(calibrationData);
+
 
     @Override
     public void init() {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
 
+
+        intake.init(hardwareMap);
+        deposit.init(hardwareMap);
+
         topLimitSwitch = hardwareMap.get(DigitalChannel.class, "limitSwitch");
+        intakeSlide = hardwareMap.get(DcMotor.class, "intakeSlide");
 
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources()
@@ -92,16 +125,7 @@ public class LobsterTeleop extends OpMode {
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
 
 
-        if (gamepad1.b){
-            pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.RED);
-        }
-        else if (gamepad1.x){
-            pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.BLUE);
-        }
-        else {
-            pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.YELLOW);
 
-        }
 
         timer.reset();
     }
@@ -109,8 +133,30 @@ public class LobsterTeleop extends OpMode {
     /** This method is called continuously after Init while waiting for "play". **/
     @Override
     public void init_loop() {
+
+        if (gamepad1.b){
+            pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.RED);
+            telemetry.addLine("RED");
+        }
+        else if (gamepad1.x){
+            pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.BLUE);
+            telemetry.addLine("Blue");
+        }
+        else {
+            pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.YELLOW);
+            telemetry.addLine("Yellow");
+
+        }
+
+        telemetry.update();
+
+
+
+
+
+
         intake.setSlidesTargetInches(200);
-        deposit.setSlidesTargetInches(100);
+        deposit.setSlidesTargetInches(500);
 
 
         intake.update();
@@ -156,8 +202,68 @@ public class LobsterTeleop extends OpMode {
             intake.intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
+        switch (visionState) {
+            case IDLE:
+                if (lastY) {
+                    intake.setSlidesTargetInches(0);
+                    visionState = VisionState.RETRACTING;
+//                    retractStartTime = timer.seconds();
+                }
+                break;
+            case RETRACTING:
+                if (Math.abs(intakeSlide.getCurrentPosition()) < 150) {
+                    intakeSlide.setPower(0);
+                    visionState = VisionState.SNAPSHOT_PENDING;
+                    pipeline.triggerSnapshot();
+                }
+                break;
+            case SNAPSHOT_PENDING:
+                if (pipeline.hasProcessedSnapshot()) {
+                    if (pipeline.getCenter() != null) {
+                        PixelToDistanceMapper.DistanceResult result = mapper.getDistanceFromPixel(
+                                pipeline.getCenter().x, pipeline.getCenter().y
+                        );
+                        centerXpos = pipeline.getCenter().x;
+                        centerYpos = pipeline.getCenter().y;
+                        varForwardDistance = result.forwardDist;
+                        capturedPose = follower.getPose();
+                        double headingAtCapture = capturedPose.getHeading();
+                        double offsetX = varForwardDistance * Math.cos(headingAtCapture);
+                        double offsetY = varForwardDistance * Math.sin(headingAtCapture);
+                        double targetX = capturedPose.getX() + offsetX;
+                        double targetY = capturedPose.getY() + offsetY;
+                        double robotX = follower.getPose().getX();
+                        double robotY = follower.getPose().getY();
+                        double robotHeading = follower.getPose().getHeading();
+                        double dx = targetX - robotX;
+                        double dy = targetY - robotY;
+                        double forwardComponent = dx * Math.cos(robotHeading) + dy * Math.sin(robotHeading);
+                        intake.setSlidesTargetInches(Math.max(0, Math.min(18.5, intake.inchesToTicks(forwardComponent-5)))); //need to consider turrt position
+
+                        intake.setHeightPosition(0.2822);
+                        intake.setTurret(0.23);
+
+//                        newValue = (((oldValue - 0.6)/(0)
+
+                        try {
+                            sleep(100);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        intake.setSlidesTargetInches(0);
+                    }
+                    visionState = VisionState.IDLE;
+                }
+                break;
+        }
+
+
+
+
+
         intake.updateTransferState(lastX);
-        intake.runVisionLogic(lastY);
+//        intake.runVisionLogic(lastY);
         deposit.updateScoreState(lastLeftBumper);
         deposit.updateBasketTransferState(lastB);
         deposit.updateSpecimenTransferState(lastA);
