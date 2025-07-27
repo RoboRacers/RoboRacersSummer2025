@@ -10,12 +10,15 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.FConstants;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
 import org.firstinspires.ftc.teamcode.teleop.CombinedHSVandAnglePipeline;
+import org.firstinspires.ftc.teamcode.teleop.LobsterCup.DepositAutomate;
+import org.firstinspires.ftc.teamcode.teleop.LobsterCup.IntakeWithVision;
 import org.firstinspires.ftc.teamcode.teleop.PixelToDistanceMapper;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -27,6 +30,11 @@ public class LobsterTeleop extends OpMode {
     private Follower follower;
 
     private FtcDashboard dashboard;
+
+
+    IntakeWithVision intake = new IntakeWithVision();
+
+    DepositAutomate deposit = new DepositAutomate();
 
 
     private ElapsedTime timer = new ElapsedTime();
@@ -50,12 +58,16 @@ public class LobsterTeleop extends OpMode {
     private boolean lastA = false;
     private boolean lastB = false;
     private boolean lastLeftBumper = false;
+    public DigitalChannel topLimitSwitch;
 
 
     @Override
     public void init() {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
+
+        topLimitSwitch = hardwareMap.get(DigitalChannel.class, "limitSwitch");
+
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources()
                 .getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -90,7 +102,20 @@ public class LobsterTeleop extends OpMode {
             pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.YELLOW);
 
         }
+
         timer.reset();
+    }
+
+    /** This method is called continuously after Init while waiting for "play". **/
+    @Override
+    public void init_loop() {
+        intake.setSlidesTargetInches(200);
+        deposit.setSlidesTargetInches(100);
+
+
+        intake.update();
+        deposit.update();
+
     }
 
     @Override
@@ -126,6 +151,21 @@ public class LobsterTeleop extends OpMode {
         telemetry.addData("Gamepad2 Left Bumper Pressed?", detectLeftBumperPressed);
 
 
+        if(topLimitSwitch.getState() == false){
+            telemetry.addLine("SWITCH CLICKED");
+            intake.intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        }
+
+        intake.updateTransferState(lastX);
+        intake.runVisionLogic(lastY);
+        deposit.updateScoreState(lastLeftBumper);
+        deposit.updateBasketTransferState(lastB);
+        deposit.updateSpecimenTransferState(lastA);
+
+
+
+
+
         // Drive Control
         follower.setTeleOpMovementVectors(
                 -gamepad1.left_stick_y,
@@ -134,6 +174,12 @@ public class LobsterTeleop extends OpMode {
                 true
         );
         follower.update();
+
+        intake.update();
+        deposit.update();
+
+        intake.telemetry(telemetry);
+        deposit.telemetry(telemetry);
 
 
         // Telemetry

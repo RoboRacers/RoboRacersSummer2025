@@ -26,7 +26,7 @@ public class IntakeWithVision {
     private Servo heightServo, rotateServo, turret;
 
     public Servo clawServo;
-    private DcMotor intakeSlide;
+    public DcMotor intakeSlide;
     private double heightPos = 0.5, rotatePos = 0.5, wristPos = 0.5;
     private double targetInches = 0;
     private double kP = 0.02, kI = 0.0000000001, kD = 0.0000000001;
@@ -75,7 +75,7 @@ public class IntakeWithVision {
         clawServo.setPosition(0.3);
         intakeSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        intakeSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intakeSlide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         intakeSlide.setDirection(DcMotorSimple.Direction.REVERSE);
 
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
@@ -121,13 +121,15 @@ public class IntakeWithVision {
         switch (visionState) {
             case IDLE:
                 if (detectPressed) {
+
+
                     setSlidesTargetInches(0);
                     visionState = VisionState.RETRACTING;
                     retractStartTime = timer.seconds();
                 }
                 break;
             case RETRACTING:
-                if (Math.abs(intakeSlide.getCurrentPosition()) < inchesToTicks(0.5)) {
+                if (Math.abs(intakeSlide.getCurrentPosition()) < 150) {
                     intakeSlide.setPower(0);
                     visionState = VisionState.SNAPSHOT_PENDING;
                     pipeline.triggerSnapshot();
@@ -215,7 +217,13 @@ public class IntakeWithVision {
 
 
     public void setSlidesTargetInches(double inches) {
+
         targetInches = inches;
+        intakeSlide.setTargetPosition((int)targetInches );
+
+        intakeSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        intakeSlide.setPower(1);
+
     }
 
     public void setHeightPosition(double position) {
@@ -265,7 +273,7 @@ public class IntakeWithVision {
 
     public void update() {
         // Slide PID update
-        double ticks = targetInches;
+//        double ticks = targetInches;
         if (visionState != VisionState.IDLE){
             runVisionLogic(true);
         }
@@ -273,16 +281,18 @@ public class IntakeWithVision {
             updateTransferState(true);
         }
 
-        double current = intakeSlide.getCurrentPosition();
-        double error = ticks - current;
-        double dt = (System.nanoTime() - lastTime) / 1e9;
-        integralSum += error * dt;
-        double derivative = (error - lastError) / dt;
-        double power = kP * error + kI * integralSum + kD * derivative;
-        power = Math.max(-1, Math.min(1, power));
-        intakeSlide.setPower(power);
-        lastError = error;
-        lastTime = System.nanoTime();
+
+
+//        double current = intakeSlide.getCurrentPosition();
+//        double error = ticks - current;
+//        double dt = (System.nanoTime() - lastTime) / 1e9;
+//        integralSum += error * dt;
+//        double derivative = (error - lastError) / dt;
+//        double power = kP * error + kI * integralSum + kD * derivative;
+//        power = Math.max(-1, Math.min(1, power));
+//        intakeSlide.setPower(power);
+//        lastError = error;
+//        lastTime = System.nanoTime();
 
 
     }

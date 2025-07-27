@@ -46,11 +46,17 @@ public class DepositAutomate {
 
         verticalSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         verticalSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        verticalSlides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        verticalSlides.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void setSlidesTargetInches(double inches) {
         targetInches = inches;
+
+        verticalSlides.setTargetPosition((int)targetInches );
+
+
+        verticalSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        verticalSlides.setPower(1);
     }
 
 
@@ -180,20 +186,7 @@ public class DepositAutomate {
 
 
     public void update() {
-        double ticks = targetInches;
-        double current = verticalSlides.getCurrentPosition();
-        double error = ticks - current;
-        double dt = (System.nanoTime() - lastTime) / 1e9;
-        integralSum += error * dt;
-        double derivative = (error - lastError) / dt;
-        double power = kP * error + kI * integralSum + kD * derivative;
-        power = Math.max(-1, Math.min(1, power));
-        verticalSlides.setPower(power);
-        lastError = error;
-        lastTime = System.nanoTime();
-    }
 
-    public void telemetry(Telemetry telemetry) {
         if (score != Score.IDLE){
             updateScoreState(true);
         }
@@ -204,6 +197,21 @@ public class DepositAutomate {
             updateBasketTransferState(true);
         }}
 
+
+//        double ticks = targetInches;
+//        double current = verticalSlides.getCurrentPosition();
+//        double error = ticks - current;
+//        double dt = (System.nanoTime() - lastTime) / 1e9;
+//        integralSum += error * dt;
+//        double derivative = (error - lastError) / dt;
+//        double power = kP * error + kI * integralSum + kD * derivative;
+//        power = Math.max(-1, Math.min(1, power));
+//        verticalSlides.setPower(power);
+//        lastError = error;
+//        lastTime = System.nanoTime();
+    }
+
+    public void telemetry(Telemetry telemetry) {
 
         telemetry.addData("Vertical Slides Power", verticalSlides.getPower());
         telemetry.addData("Vertical Slides Pos", verticalSlides.getCurrentPosition());
