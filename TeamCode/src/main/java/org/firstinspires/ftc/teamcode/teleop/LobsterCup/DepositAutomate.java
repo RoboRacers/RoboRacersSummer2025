@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleop.LobsterCup;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -51,6 +52,12 @@ public class DepositAutomate {
 
     public void setSlidesTargetInches(double inches) {
         targetInches = inches;
+
+        verticalSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        verticalSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        verticalSlides.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        verticalSlides.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
         verticalSlides.setTargetPosition((int)targetInches );
 

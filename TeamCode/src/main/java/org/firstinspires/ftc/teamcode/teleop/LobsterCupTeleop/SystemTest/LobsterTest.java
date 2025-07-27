@@ -21,7 +21,7 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
-@TeleOp(name = "GimboDriveSlides", group = "Combined")
+@TeleOp(name = "GimboDriveSlides Test", group = "Combined")
 public class LobsterTest extends OpMode {
 
     private Follower follower;
