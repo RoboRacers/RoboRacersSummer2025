@@ -21,17 +21,19 @@ public class StateMachines {
     public Claw claw;
     public Arm arm;
     public Turret turret;
+    public DepositClaw depositClaw;
     //TODO: define deposit rolling intake (intake/outtake)
 
     // You inject the robot's Drive system into the FSM 
         // when creating the StateMachines object
-    public StateMachines(Drive drive, Slides vslides, Slides hslides, Claw claw, Arm arm, Turret turret) {
+    public StateMachines(Drive drive, Slides vslides, Slides hslides, Claw claw, Arm arm, Turret turret, DepositClaw depositClaw) {
         this.drive = drive;
         this.vslides = vslides;
         this.hslides = hslides;
         this.claw = claw;
         this.arm = arm;
         this.turret = turret;
+        this.depositClaw = depositClaw;
     }
 
         // Updates the currentState

@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.statemachine;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 //import org.firstinspires.ftc.robotcore.external.StateMachines;
 //import org.firstinspires.ftc.teamcode.StateMachines.StateMachiness;
@@ -70,12 +72,18 @@ public enum AutoState {
       public void onEnter(StateMachines sm, LinearOpMode opMode){
           opMode.telemetry.addData("State", "VSLIDE_EXTEND");
           opMode.telemetry.update();
+          sm.vslides.getSlide().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+          sm.vslides.getSlide().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+          sm.vslides.getSlide().setDirection(DcMotorSimple.Direction.REVERSE);
           sm.runtime.reset();
       }
 
       @Override
       public void update(StateMachines sm, LinearOpMode opMode){
-          sm.vslides.setPower(0.1);
+          sm.vslides.extend();
+          opMode.telemetry.addData("Current Pos", sm.vslides.getSlide().getCurrentPosition());
+          opMode.telemetry.addData("Target Pos", sm.vslides.getSlide().getTargetPosition());
+          opMode.telemetry.update();
       }
     },
     VSLIDE_RETRACT {
@@ -83,12 +91,15 @@ public enum AutoState {
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "VSLIDE_RETRACT");
             opMode.telemetry.update();
+            sm.vslides.getSlide().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            sm.vslides.getSlide().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            sm.vslides.getSlide().setDirection(DcMotorSimple.Direction.REVERSE);
             sm.runtime.reset();
         }
 
         @Override
         public void update(StateMachines sm, LinearOpMode opMode){
-            sm.vslides.setPower(-0.1);
+            sm.vslides.retract();
         }
     },
     HSLIDE_EXTEND {
@@ -96,12 +107,15 @@ public enum AutoState {
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "HSLIDE_EXTEND");
             opMode.telemetry.update();
+            sm.hslides.getSlide().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            sm.hslides.getSlide().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            sm.hslides.getSlide().setDirection(DcMotorSimple.Direction.REVERSE);
             sm.runtime.reset();
         }
 
         @Override
         public void update(StateMachines sm, LinearOpMode opMode){
-            sm.hslides.setPower(0.1);
+            sm.hslides.extend();
         }
     },
     HSLIDE_RETRACT {
@@ -109,12 +123,15 @@ public enum AutoState {
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "HSLIDE_RETRACT");
             opMode.telemetry.update();
+            sm.hslides.getSlide().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            sm.hslides.getSlide().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            sm.hslides.getSlide().setDirection(DcMotorSimple.Direction.REVERSE);
             sm.runtime.reset();
         }
 
         @Override
         public void update(StateMachines sm, LinearOpMode opMode){
-            sm.hslides.setPower(-0.1);
+            sm.hslides.retract();
         }
     },
     CLAW_OPEN {
@@ -195,7 +212,7 @@ public enum AutoState {
             sm.turret.back();
         }
     },
-    ROLLING_INTAKE {
+    DEPOSIT_CLAW_OPEN {
         @Override
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "ROLLING_DEPOSIT");
@@ -205,10 +222,10 @@ public enum AutoState {
 
         @Override
         public void update(StateMachines sm, LinearOpMode opMode){
-            // rolling outtake code
+            sm.depositClaw.open();
         }
     },
-    ROLLING_OUTTAKE {
+    DEPOSIT_CLAW_CLOSE {
         @Override
         public void onEnter(StateMachines sm, LinearOpMode opMode){
             opMode.telemetry.addData("State", "ROLLING_DEPOSIT");
@@ -218,7 +235,7 @@ public enum AutoState {
 
         @Override
         public void update(StateMachines sm, LinearOpMode opMode){
-            // rolling outtake code
+            sm.depositClaw.close();
         }
     };
     public void onEnter(StateMachines sm, LinearOpMode opMode) {}

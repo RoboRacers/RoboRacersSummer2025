@@ -34,7 +34,7 @@ public class SlidesPID extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        slidesMotor = hardwareMap.get(DcMotor.class, "depositSlide");
+        slidesMotor = hardwareMap.get(DcMotor.class, "intakeSlide");
 //        potentiometer = hardwareMap.get(AnalogInput.class, "pot");
 
 

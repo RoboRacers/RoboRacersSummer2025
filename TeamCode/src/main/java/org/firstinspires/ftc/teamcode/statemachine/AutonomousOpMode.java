@@ -30,6 +30,7 @@ public class AutonomousOpMode extends LinearOpMode {
         Servo clawServo = hardwareMap.get(Servo.class, "claw");
         Servo armServo = hardwareMap.get(Servo.class, "arm");
         Servo turretServo = hardwareMap.get(Servo.class, "turret");
+        Servo depositClawServo = hardwareMap.get(Servo.class, "depositClaw");
 
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -38,10 +39,11 @@ public class AutonomousOpMode extends LinearOpMode {
         Slides vslide = new Slides(vslideMotor);
         Slides hslide = new Slides(hslideMotor);
         Claw claw = new Claw(clawServo);
+        DepositClaw depositClaw = new DepositClaw(depositClawServo);
         Arm arm = new Arm(armServo);
         Turret turret = new Turret(turretServo);
 
-        StateMachines fsm = new StateMachines(drive, vslide, hslide, claw, arm, turret);
+        StateMachines fsm = new StateMachines(drive, vslide, hslide, claw, arm, turret, depositClaw);
 
         waitForStart();
 
