@@ -1,13 +1,15 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.teleop.LobsterCup;
 
 import com.pedropathing.localization.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.*;
+import org.firstinspires.ftc.teamcode.teleop.CombinedHSVandAnglePipeline;
+import org.firstinspires.ftc.teamcode.teleop.PixelToDistanceMapper;
 
 @TeleOp(name = "Snapshot Vision OpMode", group = "Vision")
-public class EnhancedHSVandAngleOpmode extends LinearOpMode {
+public class AutoPickUpOnly extends LinearOpMode {
     OpenCvCamera camera;
     CombinedHSVandAnglePipeline pipeline;
 
