@@ -1,0 +1,110 @@
+package org.firstinspires.ftc.teamcode.teleop;
+
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+//@Disabled
+@Config
+
+@TeleOp(name = "No Encoder PID Slides", group = "16481")
+public class SlidesPIDnoEncoder extends LinearOpMode {
+    private DcMotor slidesMotor;
+//    private AnalogInput potentiometer;
+    private FtcDashboard dashboard;
+
+    double motorPower;
+    double maxPower;
+
+    // Configuration variables (tunable via dashboard)
+    public static double kP = 0.075;
+    public static double kI = 0.00;
+    public static double kD = 0.0001;
+    public static double kF = 0.0;
+    public static int targetPosEncoderTicks = 0; // Target angle in degrees
+
+    private double integralSum = 0;
+    private double lastError = 0;
+    private double lastTarget = 0;
+
+    private ElapsedTime timer = new ElapsedTime();
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        slidesMotor = hardwareMap.get(DcMotor.class, "intakeSlide");
+//        potentiometer = hardwareMap.get(AnalogInput.class, "pot");
+
+
+        slidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slidesMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        slidesMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        slidesMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        // Initialize FTC Dashboard
+        dashboard = FtcDashboard.getInstance();
+        telemetry = new MultipleTelemetry(telemetry,FtcDashboard.getInstance().getTelemetry());
+
+        waitForStart();
+        timer.reset();
+
+        while (opModeIsActive()) {
+//            double currentVoltage = potentiometer.getVoltage();
+            double currentAngle = slidesMotor.getCurrentPosition();
+
+            // Calculate error (using angles)
+            double error = targetPosEncoderTicks - currentAngle;
+
+            integralSum += error * timer.seconds();
+
+            double derivative = (error - lastError) / timer.seconds();
+
+//            double feedForward = kF * Math.sin(Math.toRadians(currentAngle));
+
+            motorPower = (kP * error) + (kI * integralSum) + (kD * derivative);
+
+            motorPower = Math.max(-1.0, Math.min(1.0, motorPower));
+
+            if(Math.abs(motorPower) > Math.abs(maxPower)){
+                maxPower = motorPower;
+            }
+
+            slidesMotor.setPower(motorPower);
+
+            lastError = error;
+            lastTarget = targetPosEncoderTicks;
+            timer.reset();
+
+            // Telemetry to dashboard
+            telemetry.addData("Target Angle", targetPosEncoderTicks);
+//            telemetry.addData("Current Angle", currentAngle);
+            telemetry.addData("Error", error);
+            telemetry.addData("Motor Power", motorPower);
+            telemetry.addData("kP", kP);
+            telemetry.addData("kI", kI);
+            telemetry.addData("kD", kD);
+            telemetry.addData("kF", kF);
+            telemetry.addData("Max Power Used", maxPower);
+//            telemetry.addData("Pot Voltage", potentiometer.getVoltage());
+//            telemetry.update();
+//            telemetry.update();// Important: Update the dashboard
+//            dashboard.getTelemetry();
+//            slidesMotor.setTargetPosition(targetPosEncoderTicks);
+//            slidesMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//            slidesMotor.setPower(1);
+            telemetry.addData("Current Pos", slidesMotor.getCurrentPosition());
+            telemetry.addData("Target Pos", targetPosEncoderTicks);
+            telemetry.update();
+            dashboard.getTelemetry();
+
+        }
+    }
+
+//    private double mapPotentiometerToAngle(double potentiometerValue) {
+//
+//        return ((potentiometerValue - 0.47800000000000004)/ (1.1360000000000001-0.47800000000000004)) * (90 - 0) -0;
+//    }
+}

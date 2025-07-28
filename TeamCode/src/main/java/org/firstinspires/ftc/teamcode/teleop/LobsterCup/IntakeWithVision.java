@@ -72,9 +72,10 @@ public class IntakeWithVision {
         heightServo.setPosition(heightPos);
         rotateServo.setPosition(rotatePos);
         clawServo.setPosition(0.3);
-        intakeSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        intakeSlide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        intakeSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intakeSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intakeSlide.setDirection(DcMotorSimple.Direction.REVERSE);
 //
 //        follower = new Follower(hardwareMap, FConstants.class, LConstants.class);

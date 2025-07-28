@@ -62,12 +62,16 @@ public class MainTeleop extends OpMode {
 
     private ElapsedTime timer = new ElapsedTime();
 
-    public static double kP = 0.02;
-    public static double kI = 0.0000000001;
-    public static double kD = 0.0000000001;
+    public static double kP = 0.008;
+    public static double kI = 0.00007;
+    public static double kD = 0.000001;
     public static double kF = 0.0;
 
     private double maxPower = 0;
+
+
+    private double maxPower1 = 0;
+
     private final Pose startPose = new Pose(0, 0, 0);
 
     public Pose capturedPose = new Pose(0, 0, 0);
@@ -188,8 +192,8 @@ public class MainTeleop extends OpMode {
         telemetry.update();
 
 
-        targetAngle = 200;
-        deposit.targetInches = -500;
+        targetAngle = -200;
+        deposit.targetInches = 500;
         double currentAngle = intake.intakeSlide.getCurrentPosition();
         double error = targetAngle - currentAngle;
         integralSum += error * timer.seconds();
@@ -208,10 +212,10 @@ public class MainTeleop extends OpMode {
         double derivative1 = (error1 - deposit.lastError) / timer.seconds();
         double motorPower1 = (deposit.kP * error1) + (deposit.kI * deposit.integralSum) + (deposit.kD * derivative1);
         motorPower1 = Math.max(-1.0, Math.min(1.0, motorPower1));
-        if (Math.abs(motorPower1) > Math.abs(maxPower)) {
-            maxPower = motorPower1;
+        if (Math.abs(motorPower1) > Math.abs(maxPower1)) {
+            maxPower1 = motorPower1;
         }
-        intake.intakeSlide.setPower(motorPower1);
+        deposit.verticalSlides.setPower(motorPower1);
         deposit.lastError = error1;
 
 
@@ -296,8 +300,8 @@ public class MainTeleop extends OpMode {
                         double forwardComponent = dx * Math.cos(robotHeading) + dy * Math.sin(robotHeading);
                         intake.setSlidesTargetInches(Math.max(0, Math.min(18.5, intake.inchesToTicks(forwardComponent-5)))); //need to consider turrt position
 
-                        intake.setHeightPosition(0.2822);
-                        intake.setTurret(0.23);
+                        intake.heightServo.setPosition(0.2822);
+                        intake.turret.setPosition(0.23);
 
 //                        newValue = (((oldValue - 0.6)/(0)
 
@@ -376,7 +380,7 @@ public class MainTeleop extends OpMode {
             case RETRACTING:
                 // Your logic here
                 
-                deposit.targetInches = -120;
+                deposit.targetInches = 120;
                 score = Score.IDLE;
                 break;
         }
@@ -408,7 +412,7 @@ public class MainTeleop extends OpMode {
                 break;
             case EXTEND:
                 // Extend slides to 1347 ticks for specimen height
-                deposit.targetInches = -1347;
+                deposit.targetInches = 1347;
                 specimenTransferToBar = SpecimenTransferToBar.FLIP;
                 break;
             case FLIP:
@@ -443,7 +447,7 @@ public class MainTeleop extends OpMode {
                 // Lift to 0.24 for high basket
 
 
-                deposit.targetInches = -2742;
+                deposit.targetInches = 2742;
                 basketTransferToBar = BasketTransferToBar.FLIP;
                 break;
             case FLIP:
@@ -478,8 +482,8 @@ public class MainTeleop extends OpMode {
         double derivative1 = (error1 - deposit.lastError) / dt;
         double motorPower1 = (deposit.kP * error1) + (deposit.kI * deposit.integralSum) + (deposit.kD * derivative1);
         motorPower1 = Math.max(-1.0, Math.min(1.0, motorPower1));
-        if (Math.abs(motorPower1) > Math.abs(maxPower)) {
-            maxPower = motorPower1;
+        if (Math.abs(motorPower1) > Math.abs(maxPower1)) {
+            maxPower1 = motorPower1;
         }
         deposit.verticalSlides.setPower(motorPower1);
         deposit.lastError = error1;
