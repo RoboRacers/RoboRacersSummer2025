@@ -9,15 +9,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class DepositAutomate {
-    private DcMotor verticalSlides;
-    private Servo liftServoLeft;
-    private Servo liftServoRight;
-    private Servo wristServo;
+    public DcMotor verticalSlides;
+    public Servo liftServoLeft;
+    public Servo liftServoRight;
+    public Servo wristServo;
     public Servo clawServo;
 
-    private double targetInches = 0;
-    private double kP = 0.02, kI = 0.0000000001, kD = 0.0000000001;
-    private double integralSum = 0, lastError = 0;
+    public double targetInches = 0;
+    public double kP = 0.0068, kI = 0.000007, kD = 0.00005;
+    public double integralSum = 0, lastError = 0;
     private long lastTime = System.nanoTime();
 
     enum Score {

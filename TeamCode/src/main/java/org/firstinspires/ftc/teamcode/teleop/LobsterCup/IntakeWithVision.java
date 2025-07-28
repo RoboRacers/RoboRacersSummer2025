@@ -23,7 +23,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 public class IntakeWithVision {
-    private Servo heightServo, rotateServo, turret;
+    public Servo heightServo, rotateServo, turret;
 
     public Servo clawServo;
     public DcMotor intakeSlide;
@@ -76,9 +76,9 @@ public class IntakeWithVision {
         intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intakeSlide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         intakeSlide.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-        follower.setStartingPose(startPose);
+//
+//        follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
+//        follower.setStartingPose(startPose);
 
 
 
@@ -184,18 +184,7 @@ public class IntakeWithVision {
     }
 
     public void telemetry(Telemetry telemetry) {
-        telemetry.addData("Horizontal Slides Power", intakeSlide.getPower());
-        telemetry.addData("Turret Pos", turret.getPosition());
-        telemetry.addData("Arm Pos", heightServo.getPosition());
-        telemetry.addData("Rotate Servo Pos", rotateServo.getPosition());
-        telemetry.addData("Claw Pos", clawServo.getPosition());
-        telemetry.addData("centerx", centerXpos);
-        telemetry.addData("centery", centerYpos);
-        telemetry.addData("Forward Distance", varForwardDistance);
-        telemetry.addData("Slide Target Inches", targetInches);
-        telemetry.addData("Slide Encoder Target", inchesToTicks(targetInches));
-        telemetry.addData("Current Slide Pos", intakeSlide.getCurrentPosition());
-        telemetry.addData("State", visionState);
+
     }
 
 
