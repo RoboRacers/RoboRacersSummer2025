@@ -74,11 +74,6 @@ public class MainTeleop extends OpMode {
     public static double kD = 0.000001;
     public static double kF = 0.0;
 
-    private double maxPower = 0;
-
-
-    private double maxPower1 = 0;
-
     private final Pose startPose = new Pose(0, 0, 0);
 
     public Pose capturedPose = new Pose(0, 0, 0);
@@ -104,8 +99,6 @@ public class MainTeleop extends OpMode {
     private boolean lastRightBumper = false;
     private boolean lastLeftBumper = false;
     public DigitalChannel topLimitSwitch;
-
-//    DcMotor intakeSlide;
 
     enum VisionState {
         IDLE, RETRACTING, SNAPSHOT_PENDING
@@ -182,66 +175,7 @@ public class MainTeleop extends OpMode {
     @Override
     public void init_loop() {
 
-        if (gamepad1.b){
-            pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.RED);
-            telemetry.addLine("RED");
-        }
-        else if (gamepad1.x){
-            pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.BLUE);
-            telemetry.addLine("Blue");
-        }
-        else {
             pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.YELLOW);
-            telemetry.addLine("Yellow");
-
-        }
-
-        telemetry.update();
-
-
-        targetAngle = 200;
-        deposit.targetInches = 500;
-        // Use a shared timer for both PID loops
-        double currentTime = timer.seconds();
-        double dt = currentTime - lastTime;
-        lastTime = currentTime;
-
-        if (dt > 0) {
-            // ===== Intake Slide PID =====
-            double currentIntakePos = intake.intakeSlide.getCurrentPosition();
-            double intakeError = targetAngle - currentIntakePos;
-
-            integralSum += intakeError * dt;
-            integralSum = Math.max(-MAX_INTEGRAL, Math.min(MAX_INTEGRAL, integralSum));
-
-            double intakeDerivative = (intakeError - lastError) / dt;
-            filteredDerivative = 0.8 * filteredDerivative + 0.2 * intakeDerivative;
-
-            double intakePower = (kP * intakeError) + (kI * integralSum) + (kD * filteredDerivative);
-            intakePower = Math.max(-1.0, Math.min(1.0, intakePower));
-
-            intake.intakeSlide.setPower(intakePower);
-            lastError = intakeError;
-
-            // ===== Deposit (Vertical Slides) PID =====
-            double currentVertSlidePos = deposit.verticalSlides.getCurrentPosition();
-            double depositError = deposit.targetInches - currentVertSlidePos;
-
-            deposit.integralSum += depositError * dt;
-            deposit.integralSum = Math.max(-MAX_INTEGRAL, Math.min(MAX_INTEGRAL, deposit.integralSum));
-
-            double depositDerivative = (depositError - deposit.lastError) / dt;
-            deposit.filteredDerivative = 0.8 * deposit.filteredDerivative + 0.2 * depositDerivative;
-
-            double depositPower = (deposit.kP * depositError) +
-                    (deposit.kI * deposit.integralSum) +
-                    (deposit.kD * deposit.filteredDerivative);
-            depositPower = Math.max(-1.0, Math.min(1.0, depositPower));
-
-            deposit.verticalSlides.setPower(depositPower);
-            deposit.lastError = depositError;
-        }
-
 
     }
 
@@ -252,10 +186,6 @@ public class MainTeleop extends OpMode {
 
     @Override
     public void loop() {
-        // Handle X press for detection
-//        boolean detectPressed = gamepad1.x && !lastX;
-//        lastX = gamepad1.x;
-//        telemetry.addData("x pressed?", detectPressed);
 
         boolean detectXPressed = gamepad2.x && !lastX;
         lastX = gamepad2.x;
@@ -336,13 +266,7 @@ public class MainTeleop extends OpMode {
 
                         }
                         break;
-//                        newValue = (((oldValue - 0.6)/(0)
 
-//                        try {
-//                            sleep(100);
-//                        } catch (InterruptedException e) {
-//                            throw new RuntimeException(e);
-//                        }
                     } else {
                         targetAngle = 20;
                         visionState = VisionState.IDLE;
@@ -454,15 +378,6 @@ public class MainTeleop extends OpMode {
                     waitStartTime = 0;
                 }
 
-                // The while loop stops everything else, whereas above it allows everything else to run
-//                // Close claw to grab specimen
-//                deposit.clawServo.setPosition(0.34);
-//                timer.reset();
-//                while (timer.seconds() < 0.2){
-//
-//                }
-//                deposit.moveWrist(0.57);
-//                specimenTransferToBar = SpecimenTransferToBar.EXTEND;
                 break;
             case EXTEND:
                 if (waitStartTime == 0) {
@@ -500,13 +415,9 @@ public class MainTeleop extends OpMode {
                     basketTransferToBar = BasketTransferToBar.EXTEND;
                     waitStartTime = 0;
                 }
-                //could also just do if statements with timer.seconds() instead of another variable
 
                 break;
             case EXTEND:
-                // Extend slides to high basket (2742 ticks)
-                // Lift to 0.24 for high basket
-
 
                 deposit.targetInches = 2742;
                 basketTransferToBar = BasketTransferToBar.FLIP;
