@@ -17,6 +17,8 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.FConstants;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
 import org.firstinspires.ftc.teamcode.teleop.CombinedHSVandAnglePipeline;
+import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.SystemTest.MainTeleop;
+import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.SystemTest.MainTeleopPID;
 import org.firstinspires.ftc.teamcode.teleop.PixelToDistanceMapper;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -32,6 +34,7 @@ public class IntakeWithVision {
     private double kP = 0.02, kI = 0.0000000001, kD = 0.0000000001;
     private double integralSum = 0, lastError = 0;
     private long lastTime = System.nanoTime();
+    MainTeleopPID mainTeleop2 = new MainTeleopPID();
 
     // Vision-related members
     public Follower follower;
@@ -44,8 +47,6 @@ public class IntakeWithVision {
     private double targetAngle = 0.0;
     private double manual = 0;
     private FtcDashboard dashboard;
-    private ElapsedTime timer = new ElapsedTime();
-
     enum VisionState {
         IDLE, RETRACTING, SNAPSHOT_PENDING
     }
@@ -86,7 +87,7 @@ public class IntakeWithVision {
 
 
 //        pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.BLUE);
-        timer.reset();
+        mainTeleop2.timer.reset();
     }
 
 
@@ -108,8 +109,8 @@ public class IntakeWithVision {
 
             case LIFT:
 
-                timer.reset();
-                while (timer.seconds() < 0.2){
+                mainTeleop2.timer.reset();
+                while (mainTeleop2.timer.seconds() < 0.2){
 
                 }
                 // Raise intake to transfer height
@@ -198,19 +199,20 @@ public class IntakeWithVision {
         if (transferState != TransferState.IDLE){
             updateTransferState(true);
         }
+        double currentIntakePos = intakeSlide.getCurrentPosition();
+        double intakeError = targetAngle - currentIntakePos;
 
+        integralSum += intakeError * mainTeleop2.dt;
+        integralSum = Math.max(-mainTeleop2.MAX_INTEGRAL, Math.min(mainTeleop2.MAX_INTEGRAL, integralSum));
 
+        double intakeDerivative = (intakeError - lastError) / mainTeleop2.dt;
+        mainTeleop2.filteredDerivative = 0.8 * mainTeleop2.filteredDerivative + 0.2 * intakeDerivative;
 
-//        double current = intakeSlide.getCurrentPosition();
-//        double error = ticks - current;
-//        double dt = (System.nanoTime() - lastTime) / 1e9;
-//        integralSum += error * dt;
-//        double derivative = (error - lastError) / dt;
-//        double power = kP * error + kI * integralSum + kD * derivative;
-//        power = Math.max(-1, Math.min(1, power));
-//        intakeSlide.setPower(power);
-//        lastError = error;
-//        lastTime = System.nanoTime();
+        double intakePower = (kP * intakeError) + (kI * integralSum) + (kD * mainTeleop2.filteredDerivative);
+        intakePower = Math.max(-1.0, Math.min(1.0, intakePower));
+
+        intakeSlide.setPower(intakePower);
+        lastError = intakeError;
 
 
     }

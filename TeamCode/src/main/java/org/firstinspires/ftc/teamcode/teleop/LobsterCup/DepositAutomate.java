@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.SystemTest.MainTeleopPID;
 
 public class DepositAutomate {
     public DcMotor verticalSlides;
@@ -14,6 +15,8 @@ public class DepositAutomate {
     public Servo liftServoRight;
     public Servo wristServo;
     public Servo clawServo;
+    MainTeleopPID mainTeleop2 = new MainTeleopPID();
+
 
     public double targetInches = 0;
     public double kP = 0.0068, kI = 0.000007, kD = 0.00005;
@@ -207,18 +210,22 @@ public class DepositAutomate {
             updateBasketTransferState(true);
         }}
 
+        double currentVertSlidePos = verticalSlides.getCurrentPosition();
+        double depositError = targetInches - currentVertSlidePos;
 
-//        double ticks = targetInches;
-//        double current = verticalSlides.getCurrentPosition();
-//        double error = ticks - current;
-//        double dt = (System.nanoTime() - lastTime) / 1e9;
-//        integralSum += error * dt;
-//        double derivative = (error - lastError) / dt;
-//        double power = kP * error + kI * integralSum + kD * derivative;
-//        power = Math.max(-1, Math.min(1, power));
-//        verticalSlides.setPower(power);
-//        lastError = error;
-//        lastTime = System.nanoTime();
+        integralSum += depositError * mainTeleop2.dt;
+        integralSum = Math.max(-mainTeleop2.MAX_INTEGRAL, Math.min(mainTeleop2.MAX_INTEGRAL, integralSum));
+
+        double depositDerivative = (depositError - lastError) / mainTeleop2.dt;
+        filteredDerivative = 0.8 * filteredDerivative + 0.2 * depositDerivative;
+
+        double depositPower = (kP * depositError) +
+                (kI * integralSum) +
+                (kD * filteredDerivative);
+        depositPower = Math.max(-1.0, Math.min(1.0, depositPower));
+
+        verticalSlides.setPower(depositPower);
+        lastError = depositError;
     }
 
     public void telemetry(Telemetry telemetry) {
