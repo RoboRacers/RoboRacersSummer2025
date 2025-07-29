@@ -21,7 +21,7 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
-@TeleOp(name = "A Wrok", group = "A")
+@TeleOp(name = "Optimized Battery teleop", group = "A")
 public class OptimizedTeleop extends OpMode {
 
     private Follower follower;
