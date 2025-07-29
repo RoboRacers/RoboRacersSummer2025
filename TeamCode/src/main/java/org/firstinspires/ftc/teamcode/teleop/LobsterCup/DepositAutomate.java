@@ -23,6 +23,8 @@ public class DepositAutomate {
     enum Score {
         IDLE, DROP, FLIP, RETRACTING
     }
+    public double filteredDerivative = 0;
+
 
     enum SpecimenTransferToBar {
         IDLE, CLOSE, EXTEND, FLIP
@@ -48,7 +50,7 @@ public class DepositAutomate {
         verticalSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         verticalSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         verticalSlides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        verticalSlides.setDirection(DcMotorSimple.Direction.REVERSE);
+//        verticalSlides.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void setSlidesTargetInches(double inches) {

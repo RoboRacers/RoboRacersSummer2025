@@ -99,8 +99,8 @@ public class AllServoTest extends LinearOpMode {
             if (gamepad1.dpad_right){
                 intake.clawServo.setPosition(gamepad1.left_stick_y);
             }
-            // 1 is open
-             // 0.9 is closed (could to 0.895)
+            // 0.6 is open
+             // 0.41 is closed
 
             if (gamepad1.right_trigger > 0.8){
                 intake.setSlidesTargetInches(gamepad1.left_stick_y*-520);

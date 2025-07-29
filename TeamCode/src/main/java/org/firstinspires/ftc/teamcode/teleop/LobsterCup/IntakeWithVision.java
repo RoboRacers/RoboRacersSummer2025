@@ -181,7 +181,7 @@ public class IntakeWithVision {
     }
 
     public double inchesToTicks(double inches) {
-        return inches * -28.51;
+        return inches * 28.51;
     }
 
     public void telemetry(Telemetry telemetry) {
