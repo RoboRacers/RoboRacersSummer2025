@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop.LobsterCup;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -34,6 +35,7 @@ import java.util.List;
  * right_stick_y    → Deposit Slide Motor
  * */
 
+@Disabled
 @TeleOp(name = "LobsterCup TeleOp (For my goat Ishaan ~ Mith)", group = "Main")
 public class FinalTeleop extends OpMode {
 
