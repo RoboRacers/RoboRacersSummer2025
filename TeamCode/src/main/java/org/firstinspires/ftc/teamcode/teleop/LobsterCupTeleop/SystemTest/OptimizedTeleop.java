@@ -60,9 +60,9 @@ public class OptimizedTeleop extends OpMode {
     private TransferState transferState = TransferState.IDLE;
 
 
-    IntakeWithVision intake = new IntakeWithVision();
+    IntakeSubsystem intake = new IntakeSubsystem();
 
-    DepositAutomate deposit = new DepositAutomate();
+    DepositSubsystem deposit = new DepositSubsystem();
 
 
     private ElapsedTime timer = new ElapsedTime();
@@ -95,6 +95,8 @@ public class OptimizedTeleop extends OpMode {
     private boolean lastY = false;
     private boolean lastA = false;
     private boolean lastRightBumper = false;
+
+    private boolean lastLimitSwitch = false;
     private boolean lastLeftBumper = false;
     public DigitalChannel topLimitSwitch;
 
@@ -130,63 +132,57 @@ public class OptimizedTeleop extends OpMode {
 
     @Override
     public void init() {
-        follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-        follower.setStartingPose(startPose);
+        try {
+            follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
+            follower.setStartingPose(startPose);
+
+            intake.init(hardwareMap);
+            deposit.init(hardwareMap);
+
+            topLimitSwitch = hardwareMap.get(DigitalChannel.class, "limitSwitch");
 
 
-        intake.init(hardwareMap);
-        deposit.init(hardwareMap);
+            telemetry.addLine("Above completed successfully");
+            telemetry.update();
 
-        topLimitSwitch = hardwareMap.get(DigitalChannel.class, "limitSwitch");
-//        intakeSlide = hardwareMap.get(DcMotor.class, "intakeSlide");
+            int cameraMonitorViewId = hardwareMap.appContext.getResources()
+                    .getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+            camera = OpenCvCameraFactory.getInstance()
+                    .createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+            pipeline = new OptimizedPipeline();
+            camera.setPipeline(pipeline);
+            camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+                @Override
+                public void onOpened() {
+                    camera.startStreaming(1920, 1200, OpenCvCameraRotation.UPRIGHT);
+                }
 
+                @Override
+                public void onError(int errorCode) {
+                    telemetry.addData("Camera Error", errorCode);
+                }
+            });
+            telemetry.addLine("Below completed successfully");
+            telemetry.update();
 
-        int cameraMonitorViewId = hardwareMap.appContext.getResources()
-                .getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance()
-                .createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        pipeline = new OptimizedPipeline();
-        camera.setPipeline(pipeline);
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-            @Override
-            public void onOpened() {
-                camera.startStreaming(1920, 1200, OpenCvCameraRotation.UPRIGHT);
-            }
+            dashboard = FtcDashboard.getInstance();
+            telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+            pipeline.setTargetColor(OptimizedPipeline.TargetColor.YELLOW);
 
-            @Override
-            public void onError(int errorCode) {
-                telemetry.addData("Camera Error", errorCode);
-                telemetry.update();
-            }
-        });
+            timer.reset();
+        } catch (Exception e) {
+            telemetry.addData("Init Error", e.getMessage());
+            telemetry.update();
+        }
 
-        dashboard = FtcDashboard.getInstance();
-        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
-
-
-//unusedServo.pwmEnable();
-//unusedServo.setPosition(0.5);
-     //   unusedServo.pwmDisable();
-
-
-
-
-        //consider this approach wehn minimizing battery usage
-
-
-
-
-
-
-        timer.reset();
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
     @Override
     public void init_loop() {
 
-            pipeline.setTargetColor(OptimizedPipeline.TargetColor.YELLOW);
-
+telemetry.addLine("Over here");
+telemetry.update();
     }
 
     @Override
@@ -201,36 +197,48 @@ public class OptimizedTeleop extends OpMode {
 
         boolean detectXPressed = gamepad2.x && !lastX;
         lastX = gamepad2.x;
-        telemetry.addData("Gamepad2 X Pressed?", detectXPressed);
+//        telemetry.addData("Gamepad2 X Pressed?", detectXPressed);
 
         boolean detectYPressed = gamepad2.y && !lastY;
         lastY = gamepad2.y;
-        telemetry.addData("Gamepad2 Y Pressed?", detectYPressed);
+//        telemetry.addData("Gamepad2 Y Pressed?", detectYPressed);
 
         boolean detectAPressed = gamepad2.a && !lastA;
         lastA = gamepad2.a;
-        telemetry.addData("Gamepad2 A Pressed?", detectAPressed);
+//        telemetry.addData("Gamepad2 A Pressed?", detectAPressed);
 
         boolean detectBPressed = gamepad2.right_bumper && !lastRightBumper;
         lastRightBumper = gamepad2.right_bumper;
-        telemetry.addData("Gamepad2 B Pressed?", detectBPressed);
+//        telemetry.addData("Gamepad2 B Pressed?", detectBPressed);
 
         boolean detectLeftBumperPressed = gamepad2.left_bumper && !lastLeftBumper;
         lastLeftBumper = gamepad2.left_bumper;
-        telemetry.addData("Gamepad2 Left Bumper Pressed?", detectLeftBumperPressed);
+//        telemetry.addData("Gamepad2 Left Bumper Pressed?", detectLeftBumperPressed);
+
+        boolean detectLimitSwitch = !topLimitSwitch.getState() && lastLimitSwitch;
+        lastLimitSwitch = topLimitSwitch.getState();
+//        telemetry.addData("Gamepad2 Left Bumper Pressed?", detectLeftBumperPressed);
 
 
-        if(!topLimitSwitch.getState()){
+
+        if(detectLimitSwitch){
             telemetry.addLine("SWITCH CLICKED");
-            intake.intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//            intake.intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
         switch (visionState) {
             case IDLE:
                 if (detectYPressed) {
-                     targetAngle = 100;
-                     intake.turret.setPosition(0.3);
-                    visionState = VisionState.RETRACTING;
+
+                     if (waitStartTime == 0){
+                         targetAngle = 100;
+                         waitStartTime = timer.seconds();
+                     }
+                     else if (timer.seconds() - waitStartTime > 0.5){
+                         intake.turret.setPosition(0.3);
+                         visionState = VisionState.RETRACTING;
+                         waitStartTime = 0;
+                     }
 //                    retractStartTime = timer.seconds();
                 }
                 break;
@@ -320,7 +328,7 @@ public class OptimizedTeleop extends OpMode {
                     intake.rotateServo.setPosition(0.57);
                 }
                 else if (timer.seconds() - waitStartTime > 0.5) {
-                    targetAngle = (225); // Target transfer height
+                    targetAngle = (240); // Target transfer height
                     // Example: move out of transfer angle
                     transferState = TransferState.ROTATE;
                     waitStartTime = 0;
@@ -360,7 +368,7 @@ public class OptimizedTeleop extends OpMode {
                     deposit.moveWrist(0.1);
                     deposit.moveLift(0.95);
                 }
-                else if (timer.seconds() - waitStartTime > 0.5) {
+                else if (timer.seconds() - waitStartTime > 1) {
                     score = Score.RETRACTING;
                     waitStartTime = 0;
                 }
@@ -368,7 +376,7 @@ public class OptimizedTeleop extends OpMode {
             case RETRACTING:
                 // Your logic here
 
-                deposit.targetInches = 100;
+                deposit.targetInches = 60;
                 score = Score.IDLE;
                 break;
         }
@@ -394,7 +402,7 @@ public class OptimizedTeleop extends OpMode {
             case EXTEND:
                 if (waitStartTime == 0) {
                     waitStartTime = timer.seconds();
-                } else if (timer.seconds() - waitStartTime > 0.5) {
+                } else if (timer.seconds() - waitStartTime > 1) {
 
                     // Extend slides to 1347 ticks for specimen height
                     deposit.targetInches = 1100;
@@ -430,14 +438,21 @@ public class OptimizedTeleop extends OpMode {
 
                 break;
             case EXTEND:
+                if (waitStartTime == 0) {
+                    waitStartTime = timer.seconds();
+                } else if (timer.seconds() - waitStartTime > 1) {
 
-                deposit.targetInches = 2742;
-                basketTransferToBar = BasketTransferToBar.FLIP;
+                    // Extend slides to 1347 ticks for specimen height
+                    deposit.targetInches = 2800;
+                    basketTransferToBar = BasketTransferToBar.FLIP;
+                    waitStartTime = 0;
+                }
+
                 break;
             case FLIP:
                 // Flip wrist to 0.8578 (same as specimen)
                 deposit.moveLift(0.24);
-                deposit.moveWrist(0.6);
+                deposit.moveWrist(0.7);
                 // Open claw to drop into basket
 
                 basketTransferToBar = BasketTransferToBar.IDLE;
@@ -521,6 +536,13 @@ public class OptimizedTeleop extends OpMode {
             targetAngle -= 10;
         }
 
+
+        if (gamepad1.right_bumper){
+            deposit.targetInches += 20;
+        }
+        else if (gamepad1.left_bumper){
+            deposit.targetInches -= 20;
+        }
 
         if (gamepad2.right_trigger>0.5){
             intake.clawServo.setPosition(0.40);

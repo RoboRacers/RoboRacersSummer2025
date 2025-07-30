@@ -62,10 +62,9 @@ public class MainTeleop extends OpMode {
     private TransferState transferState = TransferState.IDLE;
 
 
-    IntakeWithVision intake = new IntakeWithVision();
+    IntakeSubsystem intake = new IntakeSubsystem();
 
-    DepositAutomate deposit = new DepositAutomate();
-
+    DepositSubsystem deposit = new DepositSubsystem();
 
     private ElapsedTime timer = new ElapsedTime();
 
