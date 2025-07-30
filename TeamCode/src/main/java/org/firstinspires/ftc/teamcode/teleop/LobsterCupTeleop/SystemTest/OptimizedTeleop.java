@@ -35,6 +35,8 @@ public class OptimizedTeleop extends OpMode {
     private static final double MAX_INTEGRAL = 1000; // or some tuned value
 
 
+
+    private boolean encoderResetDone = false;
     enum TransferState {
         IDLE, LIFT, RETRACTING, ROTATE
     }
@@ -215,15 +217,20 @@ telemetry.update();
         lastLeftBumper = gamepad2.left_bumper;
 //        telemetry.addData("Gamepad2 Left Bumper Pressed?", detectLeftBumperPressed);
 
-        boolean detectLimitSwitch = !topLimitSwitch.getState() && lastLimitSwitch;
-        lastLimitSwitch = topLimitSwitch.getState();
-//        telemetry.addData("Gamepad2 Left Bumper Pressed?", detectLeftBumperPressed);
+        // Inside loop:
+        boolean limitSwitchPressed = !topLimitSwitch.getState();  // Active-low: pressed = false
 
+// Detect transition from released → pressed
+        boolean detectLimitSwitch = limitSwitchPressed && lastLimitSwitch;
+        lastLimitSwitch = !limitSwitchPressed;  // Store previous value (pressed = false)
 
-
-        if(detectLimitSwitch){
+        if (detectLimitSwitch && !encoderResetDone) {
             telemetry.addLine("SWITCH CLICKED");
-//            intake.intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            intake.intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            intake.intakeSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);  // Or whatever you use
+
+            encoderResetDone = true;
         }
 
         switch (visionState) {
