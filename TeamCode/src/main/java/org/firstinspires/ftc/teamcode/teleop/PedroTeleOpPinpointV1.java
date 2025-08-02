@@ -11,11 +11,8 @@ import static com.pedropathing.follower.FollowerConstants.rightRearMotorName;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.Path;
-import com.pedropathing.pathgen.PathChain;
-import com.pedropathing.pathgen.Point;
 import com.pedropathing.util.Constants;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -38,9 +35,11 @@ public class PedroTeleOpPinpointV1 extends OpMode {
     private List<DcMotorEx> motors;
 
     private boolean goingToBasket = false;
-    private PathChain toBasketPath;
+    private boolean basketAfterDetour = false;
+    private Path toBasketPath;
+    private Pose nextTargetPose;
 
-    static{
+    static {
         leftFrontMotorName = "leftFront";
         leftRearMotorName = "leftBack";
         rightFrontMotorName = "rightFront";
@@ -52,15 +51,14 @@ public class PedroTeleOpPinpointV1 extends OpMode {
         rightRearMotorDirection = DcMotorSimple.Direction.FORWARD;
     }
 
-    private final Pose basketPose = new Pose(4, -22, Math.toRadians(45));
+    private final Pose basketPose = new Pose(54, 54, Math.toRadians(45));
 
     @Override
     public void init() {
         Constants.setConstants(FConstants.class, LConstants.class);
 
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-        // Set robot's actual starting location (update this to match your starting position)
-        follower.setStartingPose(new Pose(-62, 12, Math.toRadians(0)));
+        follower.setStartingPose(new Pose(19, 71, Math.toRadians(0)));
 
         leftFront = hardwareMap.get(DcMotorEx.class, leftFrontMotorName);
         leftRear = hardwareMap.get(DcMotorEx.class, leftRearMotorName);
@@ -76,21 +74,52 @@ public class PedroTeleOpPinpointV1 extends OpMode {
 
         for (DcMotorEx motor : motors) {
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            motor.setPower(0); // Ensure no power at startup
+            motor.setPower(0);
         }
+    }
+
+    private boolean crossesSubmersible(Pose start, Pose end) {
+        double subMinX = -24, subMaxX = 24;
+        double subMinY = -24, subMaxY = 24;
+        return lineIntersectsBox(start.getX(), start.getY(), end.getX(), end.getY(),
+                subMinX, subMinY, subMaxX, subMaxY);
+    }
+
+    private boolean lineIntersectsBox(double x1, double y1, double x2, double y2,
+                                      double rx1, double ry1, double rx2, double ry2) {
+        return lineIntersectsLine(x1, y1, x2, y2, rx1, ry1, rx1, ry2) ||
+                lineIntersectsLine(x1, y1, x2, y2, rx2, ry1, rx2, ry2) ||
+                lineIntersectsLine(x1, y1, x2, y2, rx1, ry1, rx2, ry1) ||
+                lineIntersectsLine(x1, y1, x2, y2, rx1, ry2, rx2, ry2);
+    }
+
+    private boolean lineIntersectsLine(double x1, double y1, double x2, double y2,
+                                       double x3, double y3, double x4, double y4) {
+        double denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+        if (denom == 0) return false;
+
+        double ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+        double ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+
+        return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
     }
 
     @Override
     public void loop() {
-        // Always update pose for live localization
         follower.update();
 
         if (goingToBasket) {
             if (!follower.isBusy()) {
-                goingToBasket = false;
+                if (basketAfterDetour) {
+                    BezierLine finalLine = new BezierLine(follower.getPose(), nextTargetPose);
+                    toBasketPath = new Path(finalLine);
+                    follower.followPath(toBasketPath);
+                    basketAfterDetour = false;
+                } else {
+                    goingToBasket = false;
+                }
             }
         } else {
-            // Manual drive control with deadzone
             double y = -gamepad1.left_stick_y;
             double x = gamepad1.left_stick_x;
             double rx = gamepad1.right_stick_x;
@@ -107,7 +136,6 @@ public class PedroTeleOpPinpointV1 extends OpMode {
                 rightFront.setPower(rf);
                 rightRear.setPower(rr);
             } else {
-                // Stop motors if no input
                 leftFront.setPower(0);
                 leftRear.setPower(0);
                 rightFront.setPower(0);
@@ -116,37 +144,38 @@ public class PedroTeleOpPinpointV1 extends OpMode {
 
             if (gamepad1.square) {
                 Pose currentPose = follower.getPose();
-                if (currentPose.getX() > 24 && currentPose.getY() < 24){
-                    Pose interPose = new Pose(40,40,Math.toRadians(270));
-                    toBasketPath = follower.pathBuilder()
-                            .addPath(new BezierLine(new Point(currentPose), new Point(interPose)))
-                            .setLinearHeadingInterpolation(currentPose.getHeading(), interPose.getHeading())
-                            .addPath(new BezierLine(new Point(interPose), new Point(basketPose)))
-                            .setLinearHeadingInterpolation(interPose.getHeading(), basketPose.getHeading())
-                            .build();
 
-                    follower.followPath(toBasketPath);
-                }
-                else if(currentPose.getX()> -24 && currentPose.getY()< -24){
-                    Pose interPose = new Pose(-40,-40,Math.toRadians(0));
-                    toBasketPath = follower.pathBuilder()
-                            .addPath(new BezierLine(new Point(currentPose), new Point(interPose)))
-                            .setLinearHeadingInterpolation(currentPose.getHeading(), interPose.getHeading())
-                            .addPath(new BezierLine(new Point(interPose), new Point(basketPose)))
-                            .setLinearHeadingInterpolation(interPose.getHeading(), basketPose.getHeading())
-                            .build();
+                // Clamp basket pose to field bounds
+                double bx = Math.max(-72, Math.min(72, basketPose.getX()));
+                double by = Math.max(-72, Math.min(72, basketPose.getY()));
+                Pose safeBasketPose = new Pose(bx, by, basketPose.getHeading());
 
-                    follower.followPath(toBasketPath);
-                }
-                else{
-                    toBasketPath = follower.pathBuilder()
-                            .addPath(new BezierLine(new Point(currentPose), new Point(basketPose)))
-                            .setLinearHeadingInterpolation(currentPose.getHeading(), basketPose.getHeading())
-                            .build();
+                boolean crosses = crossesSubmersible(currentPose, safeBasketPose);
 
+                if (crosses) {
+                    // Detour either horizontally or vertically based on current position
+                    double detourX = (currentPose.getX() < 0) ? -30 : 30;
+                    double detourY = (Math.abs(currentPose.getY()) > Math.abs(currentPose.getX())) ?
+                            ((currentPose.getY() < 0) ? -30 : 30) : currentPose.getY();
+
+                    detourX = Math.max(-72, Math.min(72, detourX));
+                    detourY = Math.max(-72, Math.min(72, detourY));
+
+                    Pose detourPose = new Pose(detourX, detourY, Math.toRadians(0));
+                    BezierLine toDetour = new BezierLine(currentPose, detourPose);
+                    toBasketPath = new Path(toDetour);
+
+                    nextTargetPose = safeBasketPose;
+                    basketAfterDetour = true;
+                    goingToBasket = true;
                     follower.followPath(toBasketPath);
+
+                } else {
+                    BezierLine direct = new BezierLine(currentPose, safeBasketPose);
+                    toBasketPath = new Path(direct);
+                    follower.followPath(toBasketPath);
+                    goingToBasket = true;
                 }
-                goingToBasket = true;
             }
         }
 

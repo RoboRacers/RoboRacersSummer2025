@@ -1,13 +1,13 @@
-package org.firstinspires.ftc.teamcode.teleop.gimboCode;
+package org.firstinspires.ftc.teamcode.teleop.failed;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.teleop.LobsterCup.Deposit;
 import org.firstinspires.ftc.teamcode.teleop.LobsterCup.Intake;
 
 /**
@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.teleop.LobsterCup.Intake;
  *   2. Rotate turret to deposit heading.
  *   3. Retract slides (via Deposit PID).
  */
+@Disabled
 @TeleOp(name = "GimboDepositStateMachine", group = "Combined")
 public class GimboDepositStateMachine extends OpMode {
 

@@ -1,30 +1,19 @@
-package org.firstinspires.ftc.teamcode.teleop.LobsterCup;
-
-import static java.lang.Thread.sleep;
+package org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.SystemTest;
 
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.pedroPathing.constants.FConstants;
-import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
 import org.firstinspires.ftc.teamcode.teleop.CombinedHSVandAnglePipeline;
-import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.SystemTest.MainTeleop;
-import org.firstinspires.ftc.teamcode.teleop.LobsterCupTeleop.SystemTest.MainTeleopPID;
 import org.firstinspires.ftc.teamcode.teleop.PixelToDistanceMapper;
 import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
 
-public class IntakeWithVision {
+public class IntakeSubsystem {
     public Servo heightServo, rotateServo, turret;
 
     public Servo clawServo;
@@ -34,7 +23,7 @@ public class IntakeWithVision {
     private double kP = 0.02, kI = 0.0000000001, kD = 0.0000000001;
     private double integralSum = 0, lastError = 0;
     private long lastTime = System.nanoTime();
-    MainTeleopPID mainTeleop2 = new MainTeleopPID();
+//    MainTeleopPID mainTeleop2 = new MainTeleopPID();
 
     // Vision-related members
     public Follower follower;
@@ -70,9 +59,9 @@ public class IntakeWithVision {
         turret = hardwareMap.get(Servo.class, "turret");
         intakeSlide = hardwareMap.get(DcMotor.class, "intakeSlide");
 
-        heightServo.setPosition(heightPos);
-        rotateServo.setPosition(rotatePos);
-        clawServo.setPosition(0.3);
+//        heightServo.setPosition(heightPos);
+//        rotateServo.setPosition(rotatePos);
+//        clawServo.setPosition(0.3);
 
         intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intakeSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -87,7 +76,7 @@ public class IntakeWithVision {
 
 
 //        pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.BLUE);
-        mainTeleop2.timer.reset();
+//        mainTeleop2.timer.reset();
     }
 
 
@@ -109,10 +98,10 @@ public class IntakeWithVision {
 
             case LIFT:
 
-                mainTeleop2.timer.reset();
-                while (mainTeleop2.timer.seconds() < 0.2){
-
-                }
+//                mainTeleop2.timer.reset();
+//                while (mainTeleop2.timer.seconds() < 0.2){
+//
+//                }
                 // Raise intake to transfer height
                 setHeightPosition(0.58); // Up for transfer
                 // Lift claw slightly (optional for clearance)
@@ -190,32 +179,7 @@ public class IntakeWithVision {
     }
 
 
-    public void update() {
-        // Slide PID update
-//        double ticks = targetInches;
-        if (visionState != VisionState.IDLE){
-            runVisionLogic(true);
-        }
-        if (transferState != TransferState.IDLE){
-            updateTransferState(true);
-        }
-        double currentIntakePos = intakeSlide.getCurrentPosition();
-        double intakeError = targetAngle - currentIntakePos;
 
-        integralSum += intakeError * mainTeleop2.dt;
-        integralSum = Math.max(-mainTeleop2.MAX_INTEGRAL, Math.min(mainTeleop2.MAX_INTEGRAL, integralSum));
-
-        double intakeDerivative = (intakeError - lastError) / mainTeleop2.dt;
-        mainTeleop2.filteredDerivative = 0.8 * mainTeleop2.filteredDerivative + 0.2 * intakeDerivative;
-
-        double intakePower = (kP * intakeError) + (kI * integralSum) + (kD * mainTeleop2.filteredDerivative);
-        intakePower = Math.max(-1.0, Math.min(1.0, intakePower));
-
-        intakeSlide.setPower(intakePower);
-        lastError = intakeError;
-
-
-    }
 
     public void stop() {
         camera.stopStreaming();

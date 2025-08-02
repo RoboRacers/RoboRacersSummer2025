@@ -23,8 +23,8 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
-@TeleOp(name = "A Wrok", group = "A")
-public class MainTeleop extends OpMode {
+@TeleOp(name = "pidsuperawesomesauce", group = "A")
+public class MainTeleopPID extends OpMode {
 
     private Follower follower;
 
@@ -33,8 +33,8 @@ public class MainTeleop extends OpMode {
     private double lastTime = 0;
 
 
-    private double filteredDerivative = 0;
-    private static final double MAX_INTEGRAL = 1000; // or some tuned value
+    public double filteredDerivative = 0;
+    public static final double MAX_INTEGRAL = 1000; // or some tuned value
 
 
     enum TransferState {
@@ -62,11 +62,13 @@ public class MainTeleop extends OpMode {
     private TransferState transferState = TransferState.IDLE;
 
 
-    IntakeSubsystem intake = new IntakeSubsystem();
+    IntakeWithVision intake = new IntakeWithVision();
 
-    DepositSubsystem deposit = new DepositSubsystem();
+    DepositAutomate deposit = new DepositAutomate();
+    public double dt;
 
-    private ElapsedTime timer = new ElapsedTime();
+
+    public ElapsedTime timer = new ElapsedTime();
 
     public static double kP = 0.008;
     public static double kI = 0.00007;
@@ -81,15 +83,17 @@ public class MainTeleop extends OpMode {
     OpenCvCamera camera;
     CombinedHSVandAnglePipeline pipeline;
 
-    private double waitStartTime = 0;
+    // REPLACED: Use dedicated timers instead of one generic waitStartTime
+    private final ElapsedTime visionTimer = new ElapsedTime();
+    private final ElapsedTime transferTimer = new ElapsedTime();
+    private final ElapsedTime scoreTimer = new ElapsedTime();
+    private final ElapsedTime specimenTransferTimer = new ElapsedTime();
+    private final ElapsedTime basketTransferTimer = new ElapsedTime();
+
 
     public double target(double inches) {
-//        return (inches * 27.92);
-//return (inches*28.16506); //if slides go all the way to 21.5 inches
-        return(inches  * 28.229);// if slides go below 19 inches
-        // return (inches * 35.294);
+        return(inches  * 28.229);
     }
-//    private boolean lastX = false;
     private boolean lastX = false;
 
     public double targetAngle = 0;
@@ -98,6 +102,8 @@ public class MainTeleop extends OpMode {
     private boolean lastRightBumper = false;
     private boolean lastLeftBumper = false;
     public DigitalChannel topLimitSwitch;
+
+//    DcMotor intakeSlide;
 
     enum VisionState {
         IDLE, RETRACTING, SNAPSHOT_PENDING
@@ -139,7 +145,6 @@ public class MainTeleop extends OpMode {
         deposit.init(hardwareMap);
 
         topLimitSwitch = hardwareMap.get(DigitalChannel.class, "limitSwitch");
-//        intakeSlide = hardwareMap.get(DcMotor.class, "intakeSlide");
 
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources()
@@ -164,18 +169,24 @@ public class MainTeleop extends OpMode {
         dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
 
-
-
-
         timer.reset();
     }
 
-    /** This method is called continuously after Init while waiting for "play". **/
     @Override
     public void init_loop() {
+        pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.YELLOW);
 
-            pipeline.setTargetColor(CombinedHSVandAnglePipeline.TargetColor.YELLOW);
+        targetAngle = 200;
+        deposit.targetInches = 300;
 
+        double currentTime = timer.seconds();
+        dt = currentTime - lastTime;
+        lastTime = currentTime;
+
+        if (dt > 0) {
+            intake.update();
+            deposit.update();
+        }
     }
 
     @Override
@@ -185,40 +196,31 @@ public class MainTeleop extends OpMode {
 
     @Override
     public void loop() {
-
+        // Detect button edge-presses
         boolean detectXPressed = gamepad2.x && !lastX;
-        lastX = gamepad2.x;
-        telemetry.addData("Gamepad2 X Pressed?", detectXPressed);
-
         boolean detectYPressed = gamepad2.y && !lastY;
-        lastY = gamepad2.y;
-        telemetry.addData("Gamepad2 Y Pressed?", detectYPressed);
-
         boolean detectAPressed = gamepad2.a && !lastA;
-        lastA = gamepad2.a;
-        telemetry.addData("Gamepad2 A Pressed?", detectAPressed);
-
         boolean detectBPressed = gamepad2.right_bumper && !lastRightBumper;
-        lastRightBumper = gamepad2.right_bumper;
-        telemetry.addData("Gamepad2 B Pressed?", detectBPressed);
-
         boolean detectLeftBumperPressed = gamepad2.left_bumper && !lastLeftBumper;
-        lastLeftBumper = gamepad2.left_bumper;
-        telemetry.addData("Gamepad2 Left Bumper Pressed?", detectLeftBumperPressed);
 
+        lastX = gamepad2.x;
+        lastY = gamepad2.y;
+        lastA = gamepad2.a;
+        lastRightBumper = gamepad2.right_bumper;
+        lastLeftBumper = gamepad2.left_bumper;
 
         if(!topLimitSwitch.getState()){
-            telemetry.addLine("SWITCH CLICKED");
             intake.intakeSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
+        // Vision state machine
         switch (visionState) {
             case IDLE:
                 if (detectYPressed) {
-                     targetAngle = 100;
-                     intake.turret.setPosition(0.3);
+                    targetAngle = 100;
+                    intake.turret.setPosition(0.3);
                     visionState = VisionState.RETRACTING;
-//                    retractStartTime = timer.seconds();
+                    visionTimer.reset();
                 }
                 break;
             case RETRACTING:
@@ -227,6 +229,7 @@ public class MainTeleop extends OpMode {
                     intake.heightServo.setPosition(0.45);
                     visionState = VisionState.SNAPSHOT_PENDING;
                     pipeline.triggerSnapshot();
+                    visionTimer.reset();
                 }
                 break;
             case SNAPSHOT_PENDING:
@@ -250,260 +253,194 @@ public class MainTeleop extends OpMode {
                         double dx = targetX - robotX;
                         double dy = targetY - robotY;
                         double forwardComponent = dx * Math.cos(robotHeading) + dy * Math.sin(robotHeading);
-                        if (waitStartTime == 0) {
-                            waitStartTime = timer.seconds();
+                        if (visionTimer.seconds() == 0) visionTimer.reset();
 
-
-                            targetAngle = (Math.max(0, Math.min(600, intake.inchesToTicks(forwardComponent)))); //need to consider turrt position
-                        }
-                        else if (timer.seconds() - waitStartTime > 1.25) {
-
+                        if (visionTimer.seconds() < 1.25) {
+                            targetAngle = (Math.max(0, Math.min(600, intake.inchesToTicks(forwardComponent))));
+                        } else {
                             intake.heightServo.setPosition(0.2822);
                             intake.turret.setPosition(0.23);
                             visionState = VisionState.IDLE;
-                            waitStartTime = 0;
-
+                            visionTimer.reset();
                         }
-                        break;
-
                     } else {
                         targetAngle = 20;
                         visionState = VisionState.IDLE;
+                        visionTimer.reset();
                     }
-
                 }
-                telemetry.addLine("Wokring");
                 break;
         }
 
-
-
+        // Transfer state machine
         switch (transferState) {
             case IDLE:
                 if (detectXPressed) {
-                    // Start transfer sequence
                     intake.clawServo.setPosition(0.40);
                     transferState = TransferState.LIFT;
+                    transferTimer.reset();
                 }
                 break;
 
             case LIFT:
-                if (waitStartTime == 0) {
-                    waitStartTime = timer.seconds();
-                } else if (timer.seconds() - waitStartTime > 0.5) {
-                    // Raise intake to transfer height
-                    intake.heightServo.setPosition(0.58); // Up for transfer
-                    // Lift claw slightly (optional for clearance)
+                if (transferTimer.seconds() > 0.5) {
+                    intake.heightServo.setPosition(0.58);
                     transferState = TransferState.RETRACTING;
-                    waitStartTime = 0;
+                    transferTimer.reset();
                 }
                 break;
 
             case RETRACTING:
-                // Pull back or rotate out of submersible
-                if (waitStartTime == 0) {
-                    waitStartTime = timer.seconds();
-
+                if (transferTimer.seconds() == 0) {
                     intake.rotateServo.setPosition(0.57);
                 }
-                else if (timer.seconds() - waitStartTime > 0.5) {
-                    targetAngle = (225); // Target transfer height
-                    // Example: move out of transfer angle
+                if (transferTimer.seconds() > 0.5) {
+                    targetAngle = 225;
                     transferState = TransferState.ROTATE;
-                    waitStartTime = 0;
+                    transferTimer.reset();
                 }
                 break;
 
             case ROTATE:
-                // Rotate or drop to final orientation
-                intake.turret.setPosition(0.92); // Rotate for transfer
-                // Optionally open claw
-//                clawServo.setPosition(1.0); // Open to release
+                intake.turret.setPosition(0.92);
                 transferState = TransferState.IDLE;
                 break;
         }
 
-
+        // Score state machine
         switch (score) {
             case IDLE:
                 if (detectLeftBumperPressed){
                     score = Score.DROP;
+                    scoreTimer.reset();
                 }
                 break;
             case DROP:
-                // Your logic here
-                if (waitStartTime == 0) {
-                    waitStartTime = timer.seconds();
+                if (scoreTimer.seconds() == 0) {
                     deposit.clawServo.setPosition(0.1);
-                } else if (timer.seconds() - waitStartTime > 0.5) {
+                }
+                if (scoreTimer.seconds() > 0.5) {
                     score = Score.FLIP;
-                    waitStartTime = 0;
+                    scoreTimer.reset();
                 }
                 break;
             case FLIP:
-                // Your logic here
-                if (waitStartTime == 0) {
-                    waitStartTime = timer.seconds();
+                if (scoreTimer.seconds() == 0) {
                     deposit.moveWrist(0.1);
                     deposit.moveLift(0.95);
                 }
-                else if (timer.seconds() - waitStartTime > 0.5) {
+                if (scoreTimer.seconds() > 0.5) {
                     score = Score.RETRACTING;
-                    waitStartTime = 0;
+                    scoreTimer.reset();
                 }
                 break;
             case RETRACTING:
-                // Your logic here
-                
                 deposit.targetInches = 100;
                 score = Score.IDLE;
                 break;
         }
 
+        // Specimen Transfer to Bar state machine
         switch (specimenTransferToBar) {
             case IDLE:
-                if (detectAPressed) specimenTransferToBar =SpecimenTransferToBar.CLOSE;
-
+                if (detectAPressed) {
+                    specimenTransferToBar = SpecimenTransferToBar.CLOSE;
+                    specimenTransferTimer.reset();
+                }
                 break;
             case CLOSE:
-                if (waitStartTime == 0) {
-                    waitStartTime = timer.seconds();
+                if (specimenTransferTimer.seconds() == 0) {
                     deposit.clawServo.setPosition(0.34);
-                } else if (timer.seconds() - waitStartTime > 0.5) {
+                }
+                if (specimenTransferTimer.seconds() > 0.5) {
                     intake.clawServo.setPosition(0.6);
                     deposit.moveWrist(0.57);
-                    targetAngle = (350);
+                    targetAngle = 350;
                     specimenTransferToBar = SpecimenTransferToBar.EXTEND;
-                    waitStartTime = 0;
+                    specimenTransferTimer.reset();
                 }
-
                 break;
             case EXTEND:
-                if (waitStartTime == 0) {
-                    waitStartTime = timer.seconds();
-                } else if (timer.seconds() - waitStartTime > 0.5) {
-
-                    // Extend slides to 1347 ticks for specimen height
+                if (specimenTransferTimer.seconds() > 0.5) {
                     deposit.targetInches = 1100;
                     specimenTransferToBar = SpecimenTransferToBar.FLIP;
-                    waitStartTime = 0;
+                    specimenTransferTimer.reset();
                 }
                 break;
             case FLIP:
-
-                // Lift to 0.1489 for specimen position
                 deposit.moveLift(0.1489);
-                // Flip wrist to specimen scoring position
                 deposit.moveWrist(0.7);
-
                 specimenTransferToBar = SpecimenTransferToBar.IDLE;
                 break;
         }
+
+        // Basket Transfer to Bar state machine
         switch (basketTransferToBar) {
             case IDLE:
-                if (detectBPressed) basketTransferToBar = BasketTransferToBar.CLOSE;
+                if (detectBPressed) {
+                    basketTransferToBar = BasketTransferToBar.CLOSE;
+                    basketTransferTimer.reset();
+                }
                 break;
             case CLOSE:
-                if (waitStartTime == 0) {
-                    waitStartTime = timer.seconds();
+                if (basketTransferTimer.seconds() == 0) {
                     deposit.clawServo.setPosition(0.34);
-                } else if (timer.seconds() - waitStartTime > 0.5) {
+                }
+                if (basketTransferTimer.seconds() > 0.5) {
                     intake.clawServo.setPosition(0.6);
                     deposit.moveWrist(0.57);
-                    targetAngle = (300);
+                    targetAngle = 300;
                     basketTransferToBar = BasketTransferToBar.EXTEND;
-                    waitStartTime = 0;
+                    basketTransferTimer.reset();
                 }
-
                 break;
             case EXTEND:
-
                 deposit.targetInches = 2742;
                 basketTransferToBar = BasketTransferToBar.FLIP;
+                basketTransferTimer.reset();
                 break;
             case FLIP:
-                // Flip wrist to 0.8578 (same as specimen)
                 deposit.moveLift(0.24);
                 deposit.moveWrist(0.6);
-                // Open claw to drop into basket
-
                 basketTransferToBar = BasketTransferToBar.IDLE;
                 break;
         }
 
-        // Use a shared timer for both PID loops
+        // Shared PID timer logic
         double currentTime = timer.seconds();
-        double dt = currentTime - lastTime;
+        dt = currentTime - lastTime;
         lastTime = currentTime;
 
         if (dt > 0) {
-            // ===== Intake Slide PID =====
-            double currentIntakePos = intake.intakeSlide.getCurrentPosition();
-            double intakeError = targetAngle - currentIntakePos;
-
-            integralSum += intakeError * dt;
-            integralSum = Math.max(-MAX_INTEGRAL, Math.min(MAX_INTEGRAL, integralSum));
-
-            double intakeDerivative = (intakeError - lastError) / dt;
-            filteredDerivative = 0.8 * filteredDerivative + 0.2 * intakeDerivative;
-
-            double intakePower = (kP * intakeError) + (kI * integralSum) + (kD * filteredDerivative);
-            intakePower = Math.max(-1.0, Math.min(1.0, intakePower));
-
-            intake.intakeSlide.setPower(intakePower);
-            lastError = intakeError;
-
-            // ===== Deposit (Vertical Slides) PID =====
-            double currentVertSlidePos = deposit.verticalSlides.getCurrentPosition();
-            double depositError = deposit.targetInches - currentVertSlidePos;
-
-            deposit.integralSum += depositError * dt;
-            deposit.integralSum = Math.max(-MAX_INTEGRAL, Math.min(MAX_INTEGRAL, deposit.integralSum));
-
-            double depositDerivative = (depositError - deposit.lastError) / dt;
-            deposit.filteredDerivative = 0.8 * deposit.filteredDerivative + 0.2 * depositDerivative;
-
-            double depositPower = (deposit.kP * depositError) +
-                    (deposit.kI * deposit.integralSum) +
-                    (deposit.kD * deposit.filteredDerivative);
-            depositPower = Math.max(-1.0, Math.min(1.0, depositPower));
-
-            deposit.verticalSlides.setPower(depositPower);
-            deposit.lastError = depositError;
+            intake.update();
+            deposit.update();
         }
 
-
-
-
-        if (gamepad1.right_trigger>0.5){
+        // Manual turret control via gamepad1 triggers
+        if (gamepad1.right_trigger > 0.5){
             targetAngle += 10;
         }
-        else if (gamepad1.left_trigger>0.5){
+        else if (gamepad1.left_trigger > 0.5){
             targetAngle -= 10;
         }
 
-
-        if (gamepad2.right_trigger>0.5){
+        // Manual claw control via gamepad2 triggers
+        if (gamepad2.right_trigger > 0.5){
             intake.clawServo.setPosition(0.40);
         }
-        else if (gamepad2.left_trigger >0.5){
+        else if (gamepad2.left_trigger > 0.5){
             intake.clawServo.setPosition(0.6);
         }
 
-
-
-        //later
-
+        // Turret manual override
         if (gamepad1.x){
             intake.turret.setPosition(Math.min(0.95, Math.max(-gamepad1.right_stick_y, 0.1)));
         }
 
-
-
+        // Height servo manual controls
         if (gamepad2.dpad_down){
             intake.heightServo.setPosition(0.2822);
         }
-
         else if (gamepad2.dpad_up){
             intake.heightServo.setPosition(0.3572);
         }
@@ -511,20 +448,18 @@ public class MainTeleop extends OpMode {
             intake.heightServo.setPosition(0.58);
         }
 
-
+        // Rotate servo manual controls
         if (gamepad2.dpad_right){
             intake.rotateServo.setPosition(0.8428);
         }
-
         else if (gamepad2.dpad_left){
             intake.rotateServo.setPosition(0.5583);
         }
-
         else if (gamepad2.right_stick_button){
             intake.rotateServo.setPosition(gamepad2.left_stick_y);
         }
 
-        // Drive Control
+        // Drive control
         follower.setTeleOpMovementVectors(
                 -gamepad1.left_stick_y,
                 -gamepad1.left_stick_x,
@@ -532,35 +467,6 @@ public class MainTeleop extends OpMode {
                 true
         );
         follower.update();
-//
-//        intake.update();
-//        deposit.update();
-
-        telemetry.addData("Vertical Slides Power", deposit.verticalSlides.getPower());
-        telemetry.addData("Vertical Slides Pos", deposit.verticalSlides.getCurrentPosition());
-        telemetry.addData("Lift Pos L", deposit.liftServoLeft.getPosition());
-        telemetry.addData("Lift Pos R", deposit.liftServoRight.getPosition());
-        telemetry.addData("Wrist Pos", deposit.wristServo.getPosition());
-        telemetry.addData("Claw Pos", deposit.clawServo.getPosition());
-        telemetry.addData("Horizontal Slides Power", intake.intakeSlide.getPower());
-        telemetry.addData("Turret Pos", intake.intakeSlide.getCurrentPosition());
-        telemetry.addData("Arm Pos", intake.heightServo.getPosition());
-        telemetry.addData("Rotate Servo Pos", intake.rotateServo.getPosition());
-        telemetry.addData("Claw Pos", intake.clawServo.getPosition());
-        telemetry.addData("centerx", centerXpos);
-        telemetry.addData("centery", centerYpos);
-        telemetry.addData("Forward Distance", varForwardDistance);
-        telemetry.addData("Slide Target Inches", 5);
-        telemetry.addData("Slide Encoder Target", 9);
-        telemetry.addData("Current Slide Pos", intake.intakeSlide.getCurrentPosition());
-        telemetry.addData("State", visionState);
-
-        intake.telemetry(telemetry);
-        deposit.telemetry(telemetry);
-
-
-        // Telemetry
-telemetry.update();
     }
 
     @Override
