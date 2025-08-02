@@ -1,0 +1,72 @@
+/*
+ * ===============================================================
+ * LOBSTER CUP ROBOT – CODE ARCHITECTURE OVERVIEW
+ * ===============================================================
+ *
+ * LAYERED STRUCTURE:
+ *
+ * ┌────────────────────────────────────────────────────────────┐
+ * │ LAYER 1 – MODULES(e.g., Claw, Wrist, Drive Motors, Sensors)│
+ * │   • Directly control individual hardware components        │
+ * │   • Wrap servo/motor logic into reusable functions         │
+ * │   • Examples: openClaw(), rotateWristTo(), getCameraStuff()│
+ * └────────────────────────────────────────────────────────────┘
+ *
+ * ┌────────────────────────────────────────────────────────────┐
+ * │ LAYER 2 – MECHANISMS (e.g., Intake, Deposit, Drive)        │
+ * │   • Group Layer 1 modules into logical subsystems          │
+ * │   • Define high-level tasks like grabAndTransfer()         │
+ * │   • Expose methods like goToPickup(), readyToScore()       │
+ * └────────────────────────────────────────────────────────────┘
+ *
+ * ┌────────────────────────────────────────────────────────────┐
+ * │ LAYER 3 – ROBOT STATE MANAGER (Robot.java)                 │
+ * │   • Manages robot-wide states and transitions              │
+ * │   • Owns subsystem instances (e.g., Intake, Deposit)       │
+ * │   • Translates abstract modes into real hardware actions   │
+ * │   • Example modes: PICKUP, TRANSFER, RESET, SCORE          │
+ * └────────────────────────────────────────────────────────────┘
+ *
+ * ┌────────────────────────────────────────────────────────────┐
+ * │ LAYER 4 – OPMODE (e.g., TeleOp, Auto)                      │
+ * │   • Handles gamepad input or autonomous logic              │
+ * │   • Interacts ONLY with the Robot class (Layer 3)          │
+ * │   • Should never directly touch motors or servos           │
+ * └────────────────────────────────────────────────────────────┘
+ *
+ * 🔁 FLOW EXAMPLE (TeleOp):
+
+ 📦 LobsterCupRobot
+ │
+ ├── 🧱 Layer 1: Modules (Hardware Interfaces)
+ │   ├── 📂 Intake
+ │   │   └── [Claw, Wrist, Slides, Forebar, Turret, Camera]
+ │   ├── 📂 Deposit
+ │   │   └── [Claw, Wrist, Slides, AngleArm]
+ │   ├── 📂 Drive
+ │   │   ├── DriveMotors.java        ← Basic drive control
+ │   │   └── IMU.java                ← Orientation
+ │   └── 📂 Shared
+ │       └── [DistanceSensor.java, VoltageSensor.java, etc.]
+ │
+ ├── 🛠️ Layer 2: Subsystems (Mechanism Behavior)
+ │   ├── Intake.java
+ │   ├── Deposit.java
+ │   └── Drive.java                 ← Drive behaviors (strafe, turn, auto paths)
+ │
+ ├── 🤖 Layer 3: Robot.java (Robot-Level Coordinator)
+ │   └── Robot.java
+ │
+ └── 🎮 Layer 4: OpModes (User Control)
+     ├── TeleOp.java
+     └── Auto.java
+
+
+ *
+ * 🔧 MAINTAINABILITY:
+ * • Changes in hardware = update Layer 1
+ * • New behavior = update Layer 2 or 3
+ * • No low-level code inside OpMode!
+ *
+ * ===============================================================
+ */
