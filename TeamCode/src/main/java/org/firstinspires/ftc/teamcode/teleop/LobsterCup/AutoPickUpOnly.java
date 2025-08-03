@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.*;
 import org.firstinspires.ftc.teamcode.teleop.CombinedHSVandAnglePipeline;
-import org.firstinspires.ftc.teamcode.teleop.PixelToDistanceMapper;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Intake.Vision.PixelToDistanceMapper;
 
 @TeleOp(name = "AutoPickTest Vision OpMode", group = "Vision")
 public class AutoPickUpOnly extends LinearOpMode {

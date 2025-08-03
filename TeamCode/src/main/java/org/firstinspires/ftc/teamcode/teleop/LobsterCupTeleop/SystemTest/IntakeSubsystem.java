@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.teleop.CombinedHSVandAnglePipeline;
-import org.firstinspires.ftc.teamcode.teleop.PixelToDistanceMapper;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Intake.Vision.PixelToDistanceMapper;
 import org.openftc.easyopencv.OpenCvCamera;
 
 public class IntakeSubsystem {

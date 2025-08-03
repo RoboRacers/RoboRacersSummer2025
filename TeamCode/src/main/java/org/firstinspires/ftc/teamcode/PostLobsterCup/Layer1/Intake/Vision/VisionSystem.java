@@ -24,6 +24,9 @@ public class VisionSystem {
         camera = OpenCvCameraFactory.getInstance()
                 .createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
 
+
+
+
         pipeline = new CombinedHSVandAnglePipeline(targetColor);
         camera.setPipeline(pipeline);
 

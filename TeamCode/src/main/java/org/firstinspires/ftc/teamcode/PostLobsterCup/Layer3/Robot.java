@@ -48,7 +48,7 @@ public class Robot {
                 break;
 
             case SNAPSHOT:
-                intake.visionSystem.setTargetColor(targetColor);
+//                intake.visionSystem.setTargetColor(targetColor);
                 intake.visionSystem.triggerSnapshot();
                 snapshotTriggered = true;
                 transitionTo(State.WAIT_FOR_SNAPSHOT);

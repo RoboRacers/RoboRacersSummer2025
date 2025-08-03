@@ -60,7 +60,7 @@ public class Turret {
      */
     public void moveToAngle(double angle) {
         // Clamp input angle between 0 and 150 degrees
-        angle = Math.max(0, Math.min(150, angle));
+        angle = Math.max(60, Math.min(140, angle));
 
         // Calculate slope (m) and intercept (b)
         double m = (0.23 - 0.6) / (90 - 0);  // = -0.0041111 approx
