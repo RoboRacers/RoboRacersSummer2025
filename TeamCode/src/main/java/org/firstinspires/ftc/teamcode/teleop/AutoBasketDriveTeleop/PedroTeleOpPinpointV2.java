@@ -94,6 +94,13 @@ public class PedroTeleOpPinpointV2 extends OpMode {
     }
 
     @Override
+    public void start() {
+        follower.startTeleopDrive();
+
+    }
+
+
+    @Override
     public void loop() {
 
 
@@ -106,27 +113,12 @@ public class PedroTeleOpPinpointV2 extends OpMode {
             telemetry.addLine("Not Here");
             telemetry.update();
         } else {
-            double y = -gamepad1.left_stick_y;
-            double x = gamepad1.left_stick_x;
-            double rx = gamepad1.right_stick_x;
-
-            if (Math.abs(y) > 0.05 || Math.abs(x) > 0.05 || Math.abs(rx) > 0.05) {
-                double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-                double lf = (y + x + rx) / denominator;
-                double lr = (y - x + rx) / denominator;
-                double rf = (y - x - rx) / denominator;
-                double rr = (y + x - rx) / denominator;
-
-                leftFront.setPower(lf);
-                leftRear.setPower(lr);
-                rightFront.setPower(rf);
-                rightRear.setPower(rr);
-            } else {
-                leftFront.setPower(0);
-                leftRear.setPower(0);
-                rightFront.setPower(0);
-                rightRear.setPower(0);
-            }
+            follower.setTeleOpMovementVectors(
+                    -gamepad1.left_stick_y,
+                    -gamepad1.left_stick_x,
+                    (-gamepad1.right_stick_x * 0.75),
+                    true
+            );
 //            telemetry.update();
 //            follower.update();
 
@@ -135,7 +127,7 @@ public class PedroTeleOpPinpointV2 extends OpMode {
 
                 if (isInsideBox(currentPose, zoneA_minX, zoneA_maxX, zoneA_minY, zoneA_maxY)) {
                     telemetry.addLine("In Zone A - Placeholder action triggered.");
-                    endPose = new Pose(-53, 53, Math.toRadians(315));
+                    endPose = new Pose(-51.5, 51.5, Math.toRadians(315));
 
                     Path moveDownPath = new Path(new BezierLine(currentPose, endPose));
                     moveDownPath.setLinearHeadingInterpolation(currentPose.getHeading(), endPose.getHeading());
@@ -146,7 +138,7 @@ public class PedroTeleOpPinpointV2 extends OpMode {
                     // TODO: Insert Zone A action
                 } else if (isInsideBox(currentPose, zoneB_minX, zoneB_maxX, zoneB_minY, zoneB_maxY)) {
                     telemetry.addLine("In Zone B - Placeholder action triggered.");
-                    endPose = new Pose(currentPose.getX(), 25.5, Math.toRadians(270));
+                    endPose = new Pose(currentPose.getX(), 26.25, Math.toRadians(270));
 
                     Path moveDownPath = new Path(new BezierLine(currentPose, endPose));
                     moveDownPath.setLinearHeadingInterpolation(currentPose.getHeading(), endPose.getHeading());
