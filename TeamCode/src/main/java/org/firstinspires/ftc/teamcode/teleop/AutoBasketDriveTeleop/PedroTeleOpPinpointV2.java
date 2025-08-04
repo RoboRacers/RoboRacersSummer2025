@@ -17,9 +17,8 @@ import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.util.Constants;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.pedropathing.follower.FollowerConstants;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.FConstants;
@@ -28,8 +27,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
 import java.util.Arrays;
 import java.util.List;
 
-@TeleOp(name = "Sigma Sigma On the Wall", group = "Teleop")
-public class PedroTeleOpPinpoint extends OpMode {
+@TeleOp(name = "Auto Drive test", group = "Teleop")
+public class PedroTeleOpPinpointV2 extends OpMode {
     private Follower follower;
     public PathChain chain;
 
@@ -50,7 +49,24 @@ public class PedroTeleOpPinpoint extends OpMode {
         rightRearMotorDirection = DcMotorSimple.Direction.FORWARD;
     }
 
-    private final Pose basketPose = new Pose(4, -22, Math.toRadians(45));
+    private final Pose basketPose = new Pose(-55,55, Math.toRadians(315));
+
+    private Pose endPose = new Pose(0, 0, Math.toRadians(0));
+
+
+    // Define zone corners (for clarity, minX < maxX, minY < maxY)
+    private final double zoneA_minX = -72, zoneA_maxX = -36;
+    private final double zoneA_minY = 36, zoneA_maxY = 72;
+
+    private final double zoneB_minX = -24, zoneB_maxX = 24;
+    private final double zoneB_minY = 24, zoneB_maxY = 40;
+
+
+    private boolean isInsideBox(Pose pose, double minX, double maxX, double minY, double maxY) {
+        return pose.getX() >= minX && pose.getX() <= maxX &&
+                pose.getY() >= minY && pose.getY() <= maxY;
+    }
+
 
     @Override
     public void init() {
@@ -79,12 +95,16 @@ public class PedroTeleOpPinpoint extends OpMode {
 
     @Override
     public void loop() {
-        follower.update();
+
 
         if (goingToBasket) {
-            if (!follower.isBusy()) {
+            follower.update();
+            if (!follower.isBusy() || follower.atPose(endPose, 2, 2) || follower.atPose(basketPose,3,3)) {
                 goingToBasket = false;
+                follower.breakFollowing();
             }
+            telemetry.addLine("Not Here");
+            telemetry.update();
         } else {
             double y = -gamepad1.left_stick_y;
             double x = gamepad1.left_stick_x;
@@ -107,6 +127,41 @@ public class PedroTeleOpPinpoint extends OpMode {
                 rightFront.setPower(0);
                 rightRear.setPower(0);
             }
+//            telemetry.update();
+//            follower.update();
+
+            if (gamepad1.y) {
+                Pose currentPose = follower.getPose();
+
+                if (isInsideBox(currentPose, zoneA_minX, zoneA_maxX, zoneA_minY, zoneA_maxY)) {
+                    telemetry.addLine("In Zone A - Placeholder action triggered.");
+                    endPose = new Pose(-53, 53, Math.toRadians(315));
+
+                    Path moveDownPath = new Path(new BezierLine(currentPose, endPose));
+                    moveDownPath.setLinearHeadingInterpolation(currentPose.getHeading(), endPose.getHeading());
+                    chain = new PathChain(moveDownPath);
+                    follower.followPath(chain);
+                    goingToBasket = true;
+
+                    // TODO: Insert Zone A action
+                } else if (isInsideBox(currentPose, zoneB_minX, zoneB_maxX, zoneB_minY, zoneB_maxY)) {
+                    telemetry.addLine("In Zone B - Placeholder action triggered.");
+                    endPose = new Pose(currentPose.getX(), 25.5, Math.toRadians(270));
+
+                    Path moveDownPath = new Path(new BezierLine(currentPose, endPose));
+                    moveDownPath.setLinearHeadingInterpolation(currentPose.getHeading(), endPose.getHeading());
+                    // TODO: Insert Zone B action
+                    chain = new PathChain(moveDownPath);
+                    follower.followPath(chain);
+                    goingToBasket = true;
+
+                }
+//                else {
+//                    telemetry.addLine("Y pressed outside of action zones.");
+//                }
+            }
+
+
 
             if (gamepad1.square) {
                 Pose currentPose = follower.getPose();
@@ -144,12 +199,24 @@ public class PedroTeleOpPinpoint extends OpMode {
                 goingToBasket = true;
             }
         }
+//        follower.setTeleOpMovementVectors(
+//                -gamepad1.left_stick_y,
+//                -gamepad1.left_stick_x,
+//                (-gamepad1.right_stick_x * 0.75),
+//                true
+//        );
+        telemetry.addLine("Here");
+        follower.update();
 
         telemetry.addData("Mode", goingToBasket ? "Auto Path to Basket" : "Manual Drive");
         Pose pose = follower.getPose();
         telemetry.addData("x", pose.getX());
+
         telemetry.addData("y", pose.getY());
         telemetry.addData("heading", Math.toDegrees(pose.getHeading()));
+        telemetry.addData("goingToBasket", goingToBasket);
+        telemetry.addData("follower.isBusy()", follower.isBusy());
+
         telemetry.update();
     }
 
