@@ -42,19 +42,27 @@ public class SpeedLimit extends OpMode {
         rightRearMotorDirection = DcMotorSimple.Direction.FORWARD;
     }
 
-    // Define slowdown zones in four corners of the field
+    // Define the slowdown zones in four corners of the field (2 FTC tiles, 48 inches)
     private final double FIELD_MIN = -72, FIELD_MAX = 72;
-    private final double ZONE_SIZE = 24;
-    private final double SLOWDOWN_FACTOR = 0.4; // Reduce speed to 40% in corners
+    private final double ZONE_SIZE = 48; // 2 tiles, 48 inches
+    private final double SLOWDOWN_FACTOR = 0.4; // Reduce speed to 40% in corners (adjust this factor)
 
+    // Updated zones based on 2 FTC tiles (48 inches)
     private boolean isInCornerZone(Pose pose) {
         double x = pose.getX();
         double y = pose.getY();
 
-        boolean inTopLeft     = (x <= FIELD_MIN + ZONE_SIZE && y >= FIELD_MAX - ZONE_SIZE);
-        boolean inTopRight    = (x >= FIELD_MAX - ZONE_SIZE && y >= FIELD_MAX - ZONE_SIZE);
-        boolean inBottomLeft  = (x <= FIELD_MIN + ZONE_SIZE && y <= FIELD_MIN + ZONE_SIZE);
-        boolean inBottomRight = (x >= FIELD_MAX - ZONE_SIZE && y <= FIELD_MIN + ZONE_SIZE);
+        // Top-Left Corner Zone (48" wide)
+        boolean inTopLeft     = (x <= FIELD_MIN + ZONE_SIZE && y >= FIELD_MAX - ZONE_SIZE); // Top-left
+
+        // Top-Right Corner Zone (48" wide)
+        boolean inTopRight    = (x >= FIELD_MAX - ZONE_SIZE && y >= FIELD_MAX - ZONE_SIZE); // Top-right
+
+        // Bottom-Left Corner Zone (48" wide)
+        boolean inBottomLeft  = (x <= FIELD_MIN + ZONE_SIZE && y <= FIELD_MIN + ZONE_SIZE); // Bottom-left
+
+        // Bottom-Right Corner Zone (48" wide)
+        boolean inBottomRight = (x >= FIELD_MAX - ZONE_SIZE && y <= FIELD_MIN + ZONE_SIZE); // Bottom-right
 
         return inTopLeft || inTopRight || inBottomLeft || inBottomRight;
     }
@@ -64,7 +72,7 @@ public class SpeedLimit extends OpMode {
         Constants.setConstants(FConstants.class, LConstants.class);
 
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-        follower.setStartingPose(new Pose(0, 0, 0));
+        follower.setStartingPose(new Pose(-62, 13, 0)); // Set your starting position
 
         leftFront = hardwareMap.get(DcMotorEx.class, leftFrontMotorName);
         leftRear = hardwareMap.get(DcMotorEx.class, leftRearMotorName);
@@ -94,13 +102,17 @@ public class SpeedLimit extends OpMode {
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
 
+        // Default to full speed unless in a corner zone
         double scale = isInCornerZone(pose) ? SLOWDOWN_FACTOR : 1.0;
 
+        // **Adjust this section to set your desired speed when inside the zone**
+        // Example: If you want 50% speed in the corner zones, change SLOWDOWN_FACTOR to 0.5
+
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-        double lf = (y + x + rx) / denominator * scale;
-        double lr = (y - x + rx) / denominator * scale;
-        double rf = (y - x - rx) / denominator * scale;
-        double rr = (y + x - rx) / denominator * scale;
+        double lf = (y + x + rx) / denominator * scale;  // Left Front motor
+        double lr = (y - x + rx) / denominator * scale;  // Left Rear motor
+        double rf = (y - x - rx) / denominator * scale;  // Right Front motor
+        double rr = (y + x - rx) / denominator * scale;  // Right Rear motor
 
         leftFront.setPower(lf);
         leftRear.setPower(lr);
@@ -110,7 +122,7 @@ public class SpeedLimit extends OpMode {
         telemetry.addData("Pose X", pose.getX());
         telemetry.addData("Pose Y", pose.getY());
         telemetry.addData("Heading", Math.toDegrees(pose.getHeading()));
-        telemetry.addData("Slowdown Active", isInCornerZone(pose));
+        telemetry.addData("Slowdown Active", isInCornerZone(pose));  // Check if in slow zone
         telemetry.update();
     }
 }
