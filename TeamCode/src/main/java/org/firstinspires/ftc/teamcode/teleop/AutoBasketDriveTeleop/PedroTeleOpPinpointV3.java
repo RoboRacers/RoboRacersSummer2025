@@ -27,11 +27,12 @@ import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
 import java.util.Arrays;
 import java.util.List;
 
-@TeleOp(name = "Auto Drive test", group = "Teleop")
-public class PedroTeleOpPinpointV2 extends OpMode {
+@TeleOp(name = "Teleop Auto Align", group = "Teleop")
+public class PedroTeleOpPinpointV3 extends OpMode {
     private Follower follower;
     public PathChain chain;
 
+    private boolean lastAligned = false;
     private DcMotorEx leftFront, leftRear, rightFront, rightRear;
     private List<DcMotorEx> motors;
 
@@ -56,16 +57,27 @@ public class PedroTeleOpPinpointV2 extends OpMode {
 
     // Define zone corners (for clarity, minX < maxX, minY < maxY)
     private final double zoneA_minX = -72, zoneA_maxX = -36;
+
+    public boolean detectAligned = false;
     private final double zoneA_minY = 36, zoneA_maxY = 72;
 
-    private final double zoneB_minX = -24, zoneB_maxX = 24;
+    private final double zoneB_minX = -17.5, zoneB_maxX = 18;
     private final double zoneB_minY = 24, zoneB_maxY = 40;
+
+    public boolean aligned = false;
 
 
     private boolean isInsideBox(Pose pose, double minX, double maxX, double minY, double maxY) {
         return pose.getX() >= minX && pose.getX() <= maxX &&
                 pose.getY() >= minY && pose.getY() <= maxY;
     }
+
+    private void setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior behavior) {
+        for (DcMotorEx motor : motors) {
+            motor.setZeroPowerBehavior(behavior);
+        }
+    }
+
 
 
     @Override
@@ -74,6 +86,8 @@ public class PedroTeleOpPinpointV2 extends OpMode {
 
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(new Pose(-62, 12, Math.toRadians(0)));
+
+
 
         leftFront = hardwareMap.get(DcMotorEx.class, leftFrontMotorName);
         leftRear = hardwareMap.get(DcMotorEx.class, leftRearMotorName);
@@ -96,7 +110,8 @@ public class PedroTeleOpPinpointV2 extends OpMode {
     @Override
     public void start() {
         follower.startTeleopDrive();
-
+//        setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
     }
 
@@ -107,23 +122,40 @@ public class PedroTeleOpPinpointV2 extends OpMode {
 
         if (goingToBasket) {
             follower.update();
-            if (!follower.isBusy() || follower.atPose(endPose, 2, 2) || follower.atPose(basketPose,3,3)) {
+
+            if (!follower.isBusy() || follower.atPose(endPose, 1, 1) || follower.atPose(basketPose,2,2)) {
                 goingToBasket = false;
+//                aligned = true;
                 follower.breakFollowing();
+                follower.startTeleopDrive();
+//                setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                 // Coast into the path
             }
             telemetry.addLine("Not Here");
             telemetry.update();
         } else {
+
             follower.setTeleOpMovementVectors(
                     -gamepad1.left_stick_y,
                     -gamepad1.left_stick_x,
                     (-gamepad1.right_stick_x * 0.75),
                     true
             );
+            telemetry.addLine("we have driving here");
 //            telemetry.update();
 //            follower.update();
 
-            if (gamepad1.y) {
+
+
+            aligned = (isInsideBox(follower.getPose(), zoneA_minX, zoneA_maxX, zoneA_minY, zoneA_maxY) || isInsideBox(follower.getPose(), zoneB_minX, zoneB_maxX, zoneB_minY, zoneB_maxY));
+
+            detectAligned = aligned && !lastAligned;
+            lastAligned = aligned;
+
+
+
+
+            if (detectAligned) {
 //            if (follower.get)
                 Pose currentPose = follower.getPose();
 
@@ -134,18 +166,20 @@ public class PedroTeleOpPinpointV2 extends OpMode {
                     Path moveDownPath = new Path(new BezierLine(currentPose, endPose));
                     moveDownPath.setLinearHeadingInterpolation(currentPose.getHeading(), endPose.getHeading());
                     chain = new PathChain(moveDownPath);
+//                    setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     follower.followPath(chain);
                     goingToBasket = true;
 
                     // TODO: Insert Zone A action
                 } else if (isInsideBox(currentPose, zoneB_minX, zoneB_maxX, zoneB_minY, zoneB_maxY)) {
                     telemetry.addLine("In Zone B - Placeholder action triggered.");
-                    endPose = new Pose(currentPose.getX(), 26.25, Math.toRadians(270));
+                    endPose = new Pose(currentPose.getX(), 28, Math.toRadians(270));
 
                     Path moveDownPath = new Path(new BezierLine(currentPose, endPose));
                     moveDownPath.setLinearHeadingInterpolation(currentPose.getHeading(), endPose.getHeading());
                     // TODO: Insert Zone B action
                     chain = new PathChain(moveDownPath);
+//                    setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     follower.followPath(chain);
                     goingToBasket = true;
 
@@ -154,6 +188,8 @@ public class PedroTeleOpPinpointV2 extends OpMode {
 //                    telemetry.addLine("Y pressed outside of action zones.");
 //                }
             }
+
+
 
 
 
@@ -188,7 +224,7 @@ public class PedroTeleOpPinpointV2 extends OpMode {
 
                     chain = new PathChain(finalPath); // ✅ This line was missing
                 }
-
+                setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 follower.followPath(chain);
                 goingToBasket = true;
             }
@@ -210,6 +246,7 @@ public class PedroTeleOpPinpointV2 extends OpMode {
         telemetry.addData("heading", Math.toDegrees(pose.getHeading()));
         telemetry.addData("goingToBasket", goingToBasket);
         telemetry.addData("follower.isBusy()", follower.isBusy());
+        telemetry.addData("detect aligned",  detectAligned);
 
         telemetry.update();
     }
