@@ -1,8 +1,14 @@
-package org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Intake;
+package org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Deposit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+/**
+ * WARNING:
+ * THIS CODE IS PRIMARILY UNCHANGED FROM THE INTAKE WRIST CODE.
+ * IT HAS NOT BEEN COMPLETELY ADJUSTED FOR THE DEPOSIT YET.
+ */
 
 public class Wrist {
 
@@ -21,19 +27,19 @@ public class Wrist {
 
     public void moveToZeroDegrees() {
         wristServo.setPosition(ZERO_DEGREE_POSITION);
-        myTelemetry.addData("Intake Wrist Moved to ", getPosition());
+        myTelemetry.addData("Deposit Wrist Moved to ", getPosition());
         myTelemetry.update();
     }
 
     public void moveToNinetyDegrees() {
         wristServo.setPosition(NINETY_DEGREE_POSITION);
-        myTelemetry.addData("Intake Wrist Moved to ", getPosition());
+        myTelemetry.addData("Deposit Wrist Moved to ", getPosition());
         myTelemetry.update();
     }
 
     public void moveToOneEightyDegrees() {
         wristServo.setPosition(ONE_EIGHTY_DEGREE_POSITION);
-        myTelemetry.addData("Intake Wrist Moved to ", getPosition());
+        myTelemetry.addData("Deposit Wrist Moved to ", getPosition());
         myTelemetry.update();
     }
 
@@ -41,7 +47,7 @@ public class Wrist {
         // Clamp the input to valid range [0.0, 1.0]
         position = Math.max(0.0, Math.min(1.0, position));
         wristServo.setPosition(position);
-        myTelemetry.addData("Intake Wrist", "Moved to custom position: %.2f", position);
+        myTelemetry.addData("Deposit Wrist", "Moved to custom position: %.2f", position);
         myTelemetry.update();
     }
 
@@ -49,13 +55,13 @@ public class Wrist {
 
         double pos = ( (angle - 0) / (270 - 0) ) * (.8244 - 0) + 0;
         wristServo.setPosition(pos);
-        myTelemetry.addData("Intake Wrist", "Moved to angle: %.1f° (position: %.2f)", angle, pos);
+        myTelemetry.addData("Deposit Wrist", "Moved to angle: %.1f° (position: %.2f)", angle, pos);
         myTelemetry.update();
     }
 
     public void moveToTransferPosition() {
         wristServo.setPosition(TRANSFER_POSITION);
-        myTelemetry.addData("Intake Wrist Moved to ", getPosition());
+        myTelemetry.addData("Deposit Wrist Moved to ", getPosition());
         myTelemetry.update();
     }
 
