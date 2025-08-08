@@ -247,10 +247,11 @@ telemetry.update();
 
                      if (waitStartTime == 0){
                          targetPosInTicks = 100;
+                         intake.heightServo.setPosition(0.45);
                          waitStartTime = timer.seconds();
                      }
                      else if (timer.seconds() - waitStartTime > 0.5){
-                         intake.turret.setPosition(0.3);
+                         intake.turret.setPosition(0.58);
                          visionState = VisionState.RETRACTING;
                          waitStartTime = 0;
                      }
@@ -258,9 +259,9 @@ telemetry.update();
                 }
                 break;
             case RETRACTING:
-                if (Math.abs(intake.intakeSlide.getCurrentPosition()) < 150) {
+                if (Math.abs(intake.intakeSlide.getCurrentPosition()) < 130) {
 //                    intake.intakeSlide.setPower(0);
-                    intake.heightServo.setPosition(0.45);
+
                     visionState = VisionState.SNAPSHOT_PENDING;
                     pipeline.triggerSnapshot();
                 }
@@ -290,13 +291,23 @@ telemetry.update();
                             waitStartTime = timer.seconds();
 
 
-                            double wristAngle = pipeline.getTargetAngle();
+//                            double wristAngle = pipeline.getTargetAngle();
+//                            double distanceInches = result.forwardDist;
+//                            double slidesDistance = distanceInches - Math.sqrt(81- (Math.pow(result.horizOffset,2)));
+//                            double turretAngle = Math.acos(result.horizOffset/9);
+//
+//                            targetPosInTicks=(Math.max(0, Math.min(600, intake.inchesToTicks(slidesDistance))));
+//                            intake.rotateServo.setPosition(( (wristAngle - 0) / (270 - 0) ) * (.8244 - 0) + 0);
+//                            moveToAngle(turretAngle);
+
+
+                            double wristAngle = pipeline.getObjectAngle();
                             double distanceInches = result.forwardDist;
                             double slidesDistance = distanceInches - Math.sqrt(81- (Math.pow(result.horizOffset,2)));
-                            double turretAngle = Math.acos(result.horizOffset/9);
+                            double turretAngle = pipeline.getTargetOffsetAngle();
 
-                            targetPosInTicks=(Math.max(0, Math.min(600, intake.inchesToTicks(slidesDistance))));
-                            intake.rotateServo.setPosition(( (wristAngle - 0) / (270 - 0) ) * (.8244 - 0) + 0);
+                            targetPosInTicks=(Math.max(0, Math.min(600, intake.inchesToTicks(slidesDistance +3.25))));
+                            intake.rotateServo.setPosition(Math.max(0, Math.min(1 ,((wristAngle - 0) / (270 - 0) ) * (.8244 - 0) - 0.2)));
                             moveToAngle(turretAngle);
 
 
@@ -354,7 +365,7 @@ telemetry.update();
                     intake.rotateServo.setPosition(0.3);
                 }
                 else if (timer.seconds() - waitStartTime > 0.2) {
-                    targetPosInTicks = (240); // Target transfer height
+                    targetPosInTicks = (260); // Target transfer height
                     // Example: move out of transfer angle
                     transferState = TransferState.ROTATE;
                     waitStartTime = 0;
@@ -420,7 +431,7 @@ telemetry.update();
                     intake.clawServo.setPosition(0.6);
                     deposit.moveWrist(0.57);
                     targetPosInTicks = (350);
-                    intake.heightServo.setPosition(0.45);
+                    intake.heightServo.setPosition(0.58);
                     specimenTransferToBar = SpecimenTransferToBar.EXTEND;
                     waitStartTime = 0;
                 }
@@ -460,7 +471,7 @@ telemetry.update();
                     intake.clawServo.setPosition(0.6);
                     deposit.moveWrist(0.57);
                     targetPosInTicks = (350);
-                    intake.heightServo.setPosition(0.45);
+                    intake.heightServo.setPosition(0.58);
                     basketTransferToBar = BasketTransferToBar.EXTEND;
                     waitStartTime = 0;
                 }
@@ -675,8 +686,9 @@ telemetry.update();
 
         // Calculate slope (m) and intercept (b)
         double m = (0.23 - 0.6) / (90 - 0);  // = -0.0041111 approx
-        double b = 0.6;
+//        double b = 0.6;
 
+        double b= 0.452;
         // Calculate position
         double position = m * angle + b;
 

@@ -56,13 +56,15 @@ public class PedroTeleOpPinpointV3 extends OpMode {
 
 
     // Define zone corners (for clarity, minX < maxX, minY < maxY)
-    private final double zoneA_minX = -72, zoneA_maxX = -36;
+    private final double zoneA_minX = -72, zoneA_maxX = -42;
+
+    public boolean justStoppedAuto = false;
 
     public boolean detectAligned = false;
-    private final double zoneA_minY = 36, zoneA_maxY = 72;
+    private final double zoneA_minY = 42, zoneA_maxY = 72;
 
     private final double zoneB_minX = -17.5, zoneB_maxX = 18;
-    private final double zoneB_minY = 24, zoneB_maxY = 40;
+    private final double zoneB_minY = 25, zoneB_maxY = 40;
 
     public boolean aligned = false;
 
@@ -120,28 +122,66 @@ public class PedroTeleOpPinpointV3 extends OpMode {
     public void loop() {
 
 
+
         if (goingToBasket) {
             follower.update();
+
+            //DRIVING WAY TOO FAST INTO POSITION AND IT DOESNT BREAK WHEN DONE IT JUST FLOATS
 
             if (!follower.isBusy() || follower.atPose(endPose, 1, 1) || follower.atPose(basketPose,2,2)) {
                 goingToBasket = false;
 //                aligned = true;
                 follower.breakFollowing();
                 follower.startTeleopDrive();
+                justStoppedAuto = true;
 //                setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                  // Coast into the path
             }
             telemetry.addLine("Not Here");
             telemetry.update();
         } else {
+            if (justStoppedAuto) {
+                // Let the follower stop fully before resuming manual control
+                for (DcMotorEx motor : motors) motor.setPower(0);
+                justStoppedAuto = false;
+                return; // Skip this loop cycle
+            }
 
-            follower.setTeleOpMovementVectors(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
-                    (-gamepad1.right_stick_x * 0.75),
-                    true
-            );
-            telemetry.addLine("we have driving here");
+//double targetScale = isInsideBox(follower.getPose(), zoneA_minX, zoneA_maxX + 18, zoneA_minY - 18, zoneA_maxY) ? 0.7 : 1.0;
+//double currentScale = 1.0;  // Make this a class-level variable to remember across loops
+//
+//double rampSpeed = 0.05;  // How fast to ramp; tweak this number
+//
+//// Gradually move currentScale toward targetScale
+//currentScale += (targetScale - currentScale) * rampSpeed;
+//
+//follower.setTeleOpMovementVectors(
+//    -gamepad1.left_stick_y * currentScale,
+//    -gamepad1.left_stick_x * currentScale,
+//    -gamepad1.right_stick_x * 0.75,
+//    true
+//);
+
+
+
+            if (isInsideBox(follower.getPose(), zoneA_minX, zoneA_maxX + 33, zoneA_minY - 33, zoneA_maxY) || isInsideBox(follower.getPose(), zoneB_minX - 18, zoneB_maxX +16, zoneB_minY, zoneB_maxY + 25)){
+                follower.setTeleOpMovementVectors(
+                        -gamepad1.left_stick_y*0.45,
+                        -gamepad1.left_stick_x*0.45,
+                        (-gamepad1.right_stick_x * 0.3),
+                        true
+                );
+                telemetry.addLine("we have slow driving here");
+            }
+            else{
+                follower.setTeleOpMovementVectors(
+                        -gamepad1.left_stick_y,
+                        -gamepad1.left_stick_x,
+                        (-gamepad1.right_stick_x * 0.75),
+                        true
+                );
+                telemetry.addLine("we have driving here");
+            }
 //            telemetry.update();
 //            follower.update();
 
@@ -173,7 +213,7 @@ public class PedroTeleOpPinpointV3 extends OpMode {
                     // TODO: Insert Zone A action
                 } else if (isInsideBox(currentPose, zoneB_minX, zoneB_maxX, zoneB_minY, zoneB_maxY)) {
                     telemetry.addLine("In Zone B - Placeholder action triggered.");
-                    endPose = new Pose(currentPose.getX(), 28, Math.toRadians(270));
+                    endPose = new Pose(currentPose.getX(), 31, Math.toRadians(270));
 
                     Path moveDownPath = new Path(new BezierLine(currentPose, endPose));
                     moveDownPath.setLinearHeadingInterpolation(currentPose.getHeading(), endPose.getHeading());
@@ -184,6 +224,10 @@ public class PedroTeleOpPinpointV3 extends OpMode {
                     goingToBasket = true;
 
                 }
+
+
+
+
 //                else {
 //                    telemetry.addLine("Y pressed outside of action zones.");
 //                }

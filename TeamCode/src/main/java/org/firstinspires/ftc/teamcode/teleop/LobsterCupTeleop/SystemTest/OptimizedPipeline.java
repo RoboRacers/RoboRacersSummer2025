@@ -198,7 +198,8 @@ public class OptimizedPipeline extends OpenCvPipeline {
     }
 
     // Accessors
-    public double getTargetAngle() { return angle; }
+    public double getObjectAngle() { return angle; } // rotation of the object
+    public double getTargetOffsetAngle() { return targetAngle; } // angle from camera center
 
     public double getDistance() { return distance; }
 
