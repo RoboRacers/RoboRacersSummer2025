@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.PostLobsterCup.Layer2;
+package org.firstinspires.ftc.teamcode.PostLobsterCup.logical;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Deposit.AngleArm;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Deposit.Claw;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Deposit.Slides;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Deposit.Wrist;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Deposit.Forebar;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Deposit.Claw;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Deposit.Slides;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Deposit.Wrist;
 
 /**
  * Deposit Subsystem
@@ -22,7 +22,7 @@ public class Deposit {
 
     /** Subsystem components */
     private final Slides slides;
-    private final AngleArm angleArm;
+    private final Forebar angleArm;
     private final Wrist wrist;
     private final Claw claw;
     private final Telemetry telemetry;
@@ -51,7 +51,7 @@ public class Deposit {
 
         // Initialize each component
         slides = new Slides(hardwareMap, telemetry, slidesMotorName, slidesLimitName);
-        angleArm = new AngleArm(hardwareMap, telemetry, rightArmServoName, leftArmServoName);
+        angleArm = new Forebar(hardwareMap, telemetry, rightArmServoName, leftArmServoName);
         wrist = new Wrist(hardwareMap, telemetry, wristServoName);
         claw = new Claw(hardwareMap, telemetry, clawServoName);
 
@@ -116,7 +116,7 @@ public class Deposit {
 
     /** Getters for manual control if needed */
     public Slides getSlides() { return slides; }
-    public AngleArm getAngleArm() { return angleArm; }
+    public Forebar getAngleArm() { return angleArm; }
     public Wrist getWrist() { return wrist; }
     public Claw getClaw() { return claw; }
 }

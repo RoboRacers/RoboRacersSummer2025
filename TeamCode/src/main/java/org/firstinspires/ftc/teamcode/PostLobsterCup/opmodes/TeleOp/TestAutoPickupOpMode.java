@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.PostLobsterCup.Layer4.TeleOp;
+package org.firstinspires.ftc.teamcode.PostLobsterCup.opmodes.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Intake.Vision.CombinedHSVandAnglePipeline;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer3.Robot;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Intake.Vision.CombinedHSVandAnglePipeline;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.coordinator.Robot;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -14,7 +14,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 public class TestAutoPickupOpMode extends OpMode {
 
     OpenCvCamera camera;
-    org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Intake.Vision.CombinedHSVandAnglePipeline pipeline;
+    org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Intake.Vision.CombinedHSVandAnglePipeline pipeline;
     CombinedHSVandAnglePipeline.TargetColor targetColor = CombinedHSVandAnglePipeline.TargetColor.BLUE;
     private Robot robot;
     @Override

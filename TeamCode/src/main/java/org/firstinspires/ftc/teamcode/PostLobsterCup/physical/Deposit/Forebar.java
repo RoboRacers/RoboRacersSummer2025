@@ -1,10 +1,10 @@
-package org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Deposit;
+package org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Deposit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-public class AngleArm {
+public class Forebar {
 
     private Servo rightArmServo;
     private Servo leftArmServo;
@@ -15,7 +15,7 @@ public class AngleArm {
 
     private final Telemetry myTelemetry;
 
-    public AngleArm(HardwareMap hardwareMap, Telemetry telemetry, String rightServoName, String leftServoName) {
+    public Forebar(HardwareMap hardwareMap, Telemetry telemetry, String rightServoName, String leftServoName) {
         rightArmServo = hardwareMap.get(Servo.class, rightServoName);
         leftArmServo = hardwareMap.get(Servo.class, leftServoName);
 

@@ -38,23 +38,23 @@
 
  📦 LobsterCupRobot
  │
- ├── 🧱 Layer 1: Modules (Hardware Interfaces)
+ ├── 🧱 Layer 1: Physical (Hardware Interfaces)
  │   ├── 📂 Intake
  │   │   └── [Claw, Wrist, Slides, Forebar, Turret, Camera]
  │   ├── 📂 Deposit
- │   │   └── [Claw, Wrist, Slides, AngleArm]
+ │   │   └── [Claw, Wrist, Slides, Forebar, Turret]
  │   ├── 📂 Drive
  │   │   ├── DriveMotors.java        ← Basic drive control
  │   │   └── IMU.java                ← Orientation
  │   └── 📂 Shared
  │       └── [DistanceSensor.java, VoltageSensor.java, etc.]
  │
- ├── 🛠️ Layer 2: Subsystems (Mechanism Behavior)
+ ├── 🛠️ Layer 2: Logical (Mechanism Behavior)
  │   ├── Intake.java
  │   ├── Deposit.java
  │   └── Drive.java                 ← Drive behaviors (strafe, turn, auto paths)
  │
- ├── 🤖 Layer 3: Robot.java (Robot-Level Coordinator)
+ ├── 🤖 Layer 3: Coordinator (Robot-Level Coordinator)
  │   └── Robot.java
  │
  └── 🎮 Layer 4: OpModes (User Control)

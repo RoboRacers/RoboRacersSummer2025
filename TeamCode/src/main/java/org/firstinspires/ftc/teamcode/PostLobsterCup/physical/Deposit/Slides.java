@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Deposit;
+package org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Deposit;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;

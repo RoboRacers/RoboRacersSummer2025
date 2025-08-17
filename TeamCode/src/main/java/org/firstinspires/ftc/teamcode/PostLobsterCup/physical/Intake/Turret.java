@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Intake;
+package org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Intake;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;

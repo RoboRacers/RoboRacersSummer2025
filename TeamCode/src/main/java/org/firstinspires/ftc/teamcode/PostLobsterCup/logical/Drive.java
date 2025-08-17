@@ -1,9 +1,9 @@
-package org.firstinspires.ftc.teamcode.PostLobsterCup.Layer2;
+package org.firstinspires.ftc.teamcode.PostLobsterCup.logical;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Drive.DriveMotors;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Drive.IMU;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Drive.DriveMotors;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Drive.IMU;
 
 public class Drive {
 

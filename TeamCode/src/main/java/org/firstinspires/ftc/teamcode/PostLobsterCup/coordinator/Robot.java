@@ -1,10 +1,9 @@
-package org.firstinspires.ftc.teamcode.PostLobsterCup.Layer3;
+package org.firstinspires.ftc.teamcode.PostLobsterCup.coordinator;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Intake.Vision.CombinedHSVandAnglePipeline;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer1.Intake.Vision.PixelToDistanceMapper;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.Layer2.Intake;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.physical.Intake.Vision.CombinedHSVandAnglePipeline;
+import org.firstinspires.ftc.teamcode.PostLobsterCup.logical.Intake;
 
 public class Robot {
 
