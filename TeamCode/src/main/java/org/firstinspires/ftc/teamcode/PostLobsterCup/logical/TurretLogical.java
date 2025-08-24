@@ -1,15 +1,13 @@
 package org.firstinspires.ftc.teamcode.PostLobsterCup.logical;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ServoImpl;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.layers.logicaldevice.ServoLogicalIFC;
 
 // purpose: to control the turret by converting logical input (angle) into machine control input (hardware commands)
-public class TurretLogical implements ServoLogicalIFC{
+public class TurretLogical implements ServoLogicalIFC {
 
     private Servo turretPhysical;
 
@@ -20,12 +18,12 @@ public class TurretLogical implements ServoLogicalIFC{
 
 
     @Override
-    public void setPosition(double angleDeg) throws Exception {
+    public void setPositionInDeg(double angleDeg) throws Exception {
 
     }
 
     @Override
-    public double getPosition() throws Exception {
+    public double getPositionInDeg() throws Exception {
         return 0;
     }
 
