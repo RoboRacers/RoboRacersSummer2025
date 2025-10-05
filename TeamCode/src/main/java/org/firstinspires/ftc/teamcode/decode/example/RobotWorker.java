@@ -21,13 +21,12 @@ import java.util.Calendar;
 public class RobotWorker extends LinearOpMode {
 
 
-    private DcMotor shooter; // Shooter
-
     private ShooterCoord shooterCoord;
+
+    configBank config;
 
     Telemetry mytele;
 
-    private static int SHOOTER_MAX_RPM = 312;
 
     @Override
     public void runOpMode() throws InterruptedException
@@ -35,11 +34,15 @@ public class RobotWorker extends LinearOpMode {
 
         logMessage("Started the Robot Worker");
 
-        shooter = getShooterMotor();
-
         mytele = telemetry;
 
-        shooterCoord = new ShooterCoord(shooter, mytele);
+
+        config = new configBank(hardwareMap, telemetry);
+
+
+        shooterCoord = new ShooterCoord(config.getShooter(), mytele);
+
+
 
         waitForStart();
 
@@ -52,13 +55,7 @@ public class RobotWorker extends LinearOpMode {
         }
     }
 
-    private DcMotor getShooterMotor() {
-        DcMotor shooterMotor =  hardwareMap.get(DcMotor.class, "GecoWheelMotor");
-        MotorConfigurationType motorType = shooterMotor.getMotorType();
-        motorType.setMaxRPM(SHOOTER_MAX_RPM);
-        shooterMotor.setMotorType(motorType);
-        return shooterMotor;
-    }
+
 
     private void logMessage(String message)
     {
