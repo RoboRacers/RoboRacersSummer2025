@@ -54,6 +54,11 @@ public class ContinuousMotorImpl extends DcMotorImpl
         }
     }
 
+    public synchronized void setRPMv2(double rpm){
+        setPower((Math.max(0,Math.min(rpm,this.motorType.getMaxRPM())))/this.motorType.getMaxRPM());
+
+    }
+
 
 
     public synchronized void setPower(double power) {
