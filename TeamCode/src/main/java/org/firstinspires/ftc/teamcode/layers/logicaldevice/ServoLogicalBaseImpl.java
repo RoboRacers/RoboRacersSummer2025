@@ -61,7 +61,7 @@ public class ServoLogicalBaseImpl implements ServoLogicalIFC{
 
         double currentPosInMC = servoMotorPhysical.getPosition();
 
-        double angleInDeg = (double) (((currentPosInMC - rangeStartMC) * (rangeEndDeg - rangeStartDeg)) /  (rangeEndMC - rangeStartMC)) + rangeStartDeg);
+        double angleInDeg = (double) (((currentPosInMC - rangeStartMC) * (rangeEndDeg - rangeStartDeg)) /  (rangeEndMC - rangeStartMC)) + rangeStartDeg;
 
         return angleInDeg;
     }
@@ -83,7 +83,7 @@ public class ServoLogicalBaseImpl implements ServoLogicalIFC{
 
     @Override
     public void homeDevice() throws Exception {
-        DoublePair motorCntRange = servoMotorPhysical.getMotorCntRange();
+        FloatPair motorCntRange = servoMotorPhysical.getMotorCntRange();
         servoMotorPhysical.setPosition(motorCntRange.getMin());
     }
 }

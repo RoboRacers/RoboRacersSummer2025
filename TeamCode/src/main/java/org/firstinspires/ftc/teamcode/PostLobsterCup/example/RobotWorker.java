@@ -3,7 +3,10 @@ package org.firstinspires.ftc.teamcode.PostLobsterCup.example;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.configuration.MotorType;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.PostLobsterCup.example.layers.coordinators.ShooterCoord;
 
 import java.text.SimpleDateFormat;
@@ -23,15 +26,21 @@ public class RobotWorker extends LinearOpMode {
 
     private ShooterCoord shooterCoord;
 
+    Telemetry mytele;
+
+    private static int SHOOTER_MAX_RPM = 312;
+
     @Override
     public void runOpMode() throws InterruptedException
     {
 
         logMessage("Started the Robot Worker");
 
-        shooter =  hardwareMap.get(DcMotor.class, "GecoWheelMotor");
+        shooter = getShooterMotor();
 
-        shooterCoord = new ShooterCoord(shooter);
+        mytele = telemetry;
+
+        shooterCoord = new ShooterCoord(shooter, mytele);
 
         waitForStart();
 
@@ -42,6 +51,14 @@ public class RobotWorker extends LinearOpMode {
             logMessage("Running Shooter");
 
         }
+    }
+
+    private DcMotor getShooterMotor() {
+        DcMotor shooterMotor =  hardwareMap.get(DcMotor.class, "GecoWheelMotor");
+        MotorConfigurationType motorType = shooterMotor.getMotorType();
+        motorType.setMaxRPM(SHOOTER_MAX_RPM);
+        shooterMotor.setMotorType(motorType);
+        return shooterMotor;
     }
 
     private void logMessage(String message)

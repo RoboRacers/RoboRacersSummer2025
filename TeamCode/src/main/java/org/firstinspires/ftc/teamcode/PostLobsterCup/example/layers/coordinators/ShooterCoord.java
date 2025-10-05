@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.PostLobsterCup.example.layers.coordinator
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.PostLobsterCup.example.layers.logicaldevices.ShooterLogical;
 import org.firstinspires.ftc.teamcode.PostLobsterCup.example.layers.physicaldevices.ContinuousMotorImpl;
 
@@ -13,9 +14,9 @@ public class ShooterCoord {
     private ContinuousMotorImpl gecoWheelMotor;
     private ShooterLogical shooterLogical;
 
-    public ShooterCoord(DcMotor dcMotor)
+    public ShooterCoord(DcMotor dcMotor, Telemetry tele)
     {
-        gecoWheelMotor = ContinuousMotorImpl.create(dcMotor); // Get the motor from hardware map
+        gecoWheelMotor = ContinuousMotorImpl.create(dcMotor, tele); // Get the motor from hardware map
         shooterLogical = new ShooterLogical(gecoWheelMotor);
     }
 
