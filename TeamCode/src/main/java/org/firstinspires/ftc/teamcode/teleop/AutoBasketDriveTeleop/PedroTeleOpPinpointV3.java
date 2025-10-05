@@ -39,10 +39,7 @@ public class PedroTeleOpPinpointV3 extends OpMode {
     private boolean goingToBasket = false;
 
     static {
-        leftFrontMotorName = "leftFront";
-        leftRearMotorName = "leftBack";
-        rightFrontMotorName = "rightFront";
-        rightRearMotorName = "rightBack";
+
 
         leftFrontMotorDirection = DcMotorSimple.Direction.REVERSE;
         leftRearMotorDirection = DcMotorSimple.Direction.REVERSE;
