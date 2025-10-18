@@ -17,7 +17,7 @@ import java.util.Calendar;
  *
  */
 
-@TeleOp(name="RobotWorker", group="Linear Opmode")
+@TeleOp(name="RobotWorkermain", group="Linear Opmode")
 public class RobotWorker extends LinearOpMode {
 
 
