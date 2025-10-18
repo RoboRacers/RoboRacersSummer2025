@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.PostLobsterCup.example.layers.coordinators.ShooterCoord;
+import org.firstinspires.ftc.teamcode.decode.example.layers.coordinators.ShooterCoord;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
